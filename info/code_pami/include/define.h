@@ -61,8 +61,8 @@ L'IR Sensor demande :
 /*
 SERVO
 */
-#define SERVPIN 18       // Broche du servo moteur sur D15
-#define TEMPS_BLINK 1000 // Temps clignotement (ms).
+#define SERVPIN 18      // Broche du servo moteur sur D15
+#define BLINK_TIME 1000 // Temps clignotement (ms).
 
 /*
 CONFIG DES PAMI
@@ -113,8 +113,10 @@ Paramètres de l'asservissement
 #define GAIN_MM_TO_TICKS 9.9
 #define GAIN_ANGLE_TO_TICKS 11.73
 
-// Define Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite))
-// Chaque pami à ses propres positions en cm
+/*
+Define Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite))
+Chaque pami à ses propres positions en cm
+*/
 
 // PAMI 1
 #define J_POSITION_1_DEPART_X 35

@@ -55,7 +55,7 @@ public:
     void set_speed(int speed_d, int speed_g);
     void stop();
 
-    void blink_servo(int angle1, int angle2, long temps_blink = TEMPS_BLINK);
+    void blink_servo(int angle1, int angle2, long blink_time = BLINK_TIME);
     double get_IR_distance();
 
     // $ Ecran (à faire)

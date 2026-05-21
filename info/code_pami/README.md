@@ -1,8 +1,8 @@
 # 🤖 Code pour les PAMIs - by Jules & Flo & Antoine (2026)
 
 // Parler des TICKS_TO_CM - on utilise des ticks et convertir blabla
-// Tout mettre en mm
 // Rampes set_speed & stop
+// Il faut inclure les rampes accéleration & freinage dans avancer. Pas de fonctions autres. On peut les avoir aussi mais sinon set_speed & stop sont forcément bloquants. Ils ne sont appelés qu'une fois avant de passer à autre chose, on a pas le luxe de faire des boucles if et d'attendre ces phases dans avancer & tourner
 
 ## ⚠️ IMPORTANT : À LIRE AVANT D'ALLER FOUILLER LES FONCTIONS
 
@@ -116,18 +116,19 @@ Après ce long tunnel sur le fonctionnement des fonctions, voilà l'architecture
 
 #### 🚫 Fonctions sans aucun asservissement (Naïves)
 *Allume les moteurs pendant un certain temps qui dépend de gains (`K_NAIF` & `K_ANGLE_NAIF`) à régler à la main pour chaque robot.*
-* `avancer (distance)` : Avancer d'une distance en cm & recule si `distance < 0`.
-* `tourner (theta)` : Tourne d'un angle theta en degrés *(sens trigo > 0 & sens horaire < 0)*.
-* `go_to (x, y)` : Va à la position (x, y) du plateau. Avance d'abord de x, tourne de 90°, puis avance de y.
+* `avancer (distance)`  : Avancer d'une distance en cm & recule si `distance < 0`.
+* `tourner (theta)`     : Tourne d'un angle theta en degrés *(sens trigo > 0 & sens horaire < 0)*.
+* `go_to (x, y)`        : Va à la position (x, y) du plateau. Avance d'abord de x, tourne de 90°, puis avance de y.
 
 #### ⚙️ Fonctions génériques pour chaque composant
-* `set_speed (vitesse_d, vitesse_g)` : Envoie une commande aux moteurs (entre 0 & 255).
-* `blink_servo (theta1, theta2, dt)` : Tourne le servo de theta1 à theta2 en dt ms.
-* `get_IR_distance` : Retourne la distance au prochain obstacle.
+* `set_speed (vitesse_d, vitesse_g)`    : Envoie une commande aux moteurs (entre 0 & 255).
+* `stop`                                : Coupe les moteurs linéairement mais est bloquante - ne pas utiliser pendant le match
+* `blink_servo (theta1, theta2, dt)`    : Tourne le servo de theta1 à theta2 en dt ms.
+* `get_IR_distance`                     : Retourne la distance au prochain obstacle.
 
 #### ⏳ Fonctions non bloquantes qui nécessitent un numéro d'appel
-* `avancer_asserv (n° d'appel, distance, temps)` : Avancer d'une distance en cm.
-* `tourner_asserv (n° d'appel, angle, temps)` : Recule d'une distance en cm.
+* `avancer_asserv (n° d'appel, distance, temps)`    : Avancer d'une distance en cm.
+* `tourner_asserv (n° d'appel, angle, temps)`       : Recule d'une distance en cm.
 
 ### 🔢 `Encodeur`
 * `mesure` : Retourne le nombre de ticks de roue de l'encodeur.

@@ -10,9 +10,9 @@ Serv::Serv(int pin)
   - Temps en ms
   - Angles en degrés
 */
-void Serv::blink(int angle1, int angle2, long temps_blink)
+void Serv::blink(int angle1, int angle2, long blink_time)
 {
-  if (millis() - temps_servo > temps_blink)
+  if (millis() - temps_servo > blink_time)
   {
     if (etat == angle2)
     {

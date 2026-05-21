@@ -20,6 +20,9 @@ private:
     // Facteur pour passer d'un entier entre 0 ET 255 à une vitesse en cm/s
     float K_conv;
 
+    // Variables pour le freinage linéaire
+    int step_freinage = 10;
+
 public:
     /**
      * @brief met la vitesse du moteur à vitesse

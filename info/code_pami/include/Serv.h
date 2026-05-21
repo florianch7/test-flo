@@ -11,6 +11,7 @@
 #define SERV_H
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <define.h>
 
 class Serv
 {
@@ -28,7 +29,7 @@ public:
       - Temps en ms
       - Angles en degrés
     */
-    void blink(int angle1, int angle2, long temps_blink);
+    void blink(int angle1, int angle2, long blink_time = BLINK_TIME);
     void setup();
     void loop();
 };

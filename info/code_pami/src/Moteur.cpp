@@ -1,4 +1,5 @@
 #include <Moteur.h>
+#include <define.h>
 
 Moteur::Moteur(int EN, int IN1, int IN2, bool inv)
 {
@@ -59,26 +60,23 @@ void Moteur::set_speed(int vitesse)
     analogWrite(m_EN, m_vitesse); // envoie la command de vitesse
 }
 
+// Eteint les moteurs de manière linéaire pour éviter les à-coups
+// Est bloquante, à utiliser pour arrêter le robot à la fin du match ou en cas d'obstacle détecté
 void Moteur::stop()
 {
-    unsigned long local_time = millis();
+    int base_speed = abs(m_vitesse);
 
-    for (int i = 10; i > 0; i--)
+    for (int i = step_freinage; i > 0; i--)
     {
-        float current_speed = 0.1 * i * m_vitesse;
-        if (m_vitesse < 0)
-        {
-            m_vitesse = 0;
-        }
-        while (millis() - local_time < 25)
-        {
-            ;
-        }
+        int current_speed = base_speed * (i / (float)step_freinage);
         analogWrite(m_EN, current_speed);
+
+        delay(25);
     }
+
     digitalWrite(m_IN1, 0);
     digitalWrite(m_IN2, 0);
-    local_time = millis();
+    analogWrite(m_EN, 0);
 }
 
 void Moteur::loop()

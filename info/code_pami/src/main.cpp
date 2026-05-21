@@ -97,27 +97,14 @@ void setup()
 
 void loop()
 {
-    // penser à ne pas updater le temps dans les délais !
-    // remplir ici :
-    // int etapes_avec_delays[] = {1, 3, 5, 7, 9, 11, 13, 15};
-    // int taille_tab = sizeof(etapes_avec_delays) / sizeof(int);
-
-    // for (int i = 0; i < taille_tab; i++)
-    // {
-    //     if (etape_globale != etapes_avec_delays[i])
-    //     {
-    //         callbacktime = callbacktime;
-    //         break;
-    //     }
-    // }
-
+    // $ Tester pami.stop()
     // Fonction constamment - pas nécessaire
     pami.blink_servo(0, 90);
 
     // Condition de fin de match
     if (millis() - pami.m_time_match >= END_TIME)
     {
-        pami.set_speed(0, 0);
+        pami.stop();
         Serial.println("Temps de match écoulé - Arrêt du robot.");
         while (true)
         {
@@ -129,7 +116,7 @@ void loop()
     if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
     {
         Serial.println("Obstacle détecté ! Arrêt du robot.");
-        pami.set_speed(0, 0);
+        pami.stop();
         return;
     }
 

@@ -149,186 +149,6 @@ void Pami::test(int mode)
 }
 
 /*
-Fonctions de déplacement basiques (sans asservissement, juste pour tester les fonctions de base et régler les gains K_NAIF et K_ANGLE_NAIF
-*/
-void Pami::go_to(float distance_x, float distance_y, int speed)
-{
-    this->avancer(distance_x, speed);
-    delay(200);
-    this->tourner(90, speed);
-    delay(200);
-    this->avancer(distance_y, speed);
-    delay(200);
-}
-
-/*
-Avance d'une distance en attendant un certain temps sans aucun asservissement
-Ce temps est corrigé par K_NAIF pour avoir la bonne distance
-K_NAIF dépend du robot, a vous de le changer au début
-*/
-void Pami::avancer(float distance, int speed)
-{
-    if (distance < 0.)
-    {
-        speed = -speed;
-    }
-
-    long moving_time = K_NAIF * (abs(distance) / SPEED) * 1000;
-    Serial.print("Temps estimé pour avancer de " + String(distance / 10.0) + " cm à la vitesse de " + String(speed) + " : " + String(moving_time) + " ms");
-
-    unsigned long function_start_time = millis();
-    while (millis() - function_start_time < moving_time)
-    {
-        float dist = this->get_IR_distance();
-
-        if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
-        {
-            Serial.println("Obstacle détecté ! Arrêt du robot.");
-            this->stop();
-        }
-        else
-        {
-            this->set_speed(speed, speed);
-        }
-    }
-    this->stop();
-}
-
-/*
-Tourne d'un angle en attendant un certain temps sans aucun asservissement
-Ce temps est corrigé par K_ANGLE_NAIF pour avoir le bon angle
-K_ANGLE_NAIF dépend du robot, à vous de le changer au début
-*/
-void Pami::tourner(float angle_degres, float speed)
-{
-    if (angle_degres < 0)
-    {
-        speed = -speed;
-    }
-
-    long moving_time = K_ANGLE_NAIF * (abs(angle_degres) / 360.0) * 1000;
-    Serial.print("Temps estimé pour tourner de " + String(angle_degres) + " ° à la vitesse de " + String(speed) + " : " + String(K_ANGLE_NAIF * (abs(angle_degres) / 360.0) * 1000) + " ms");
-
-    unsigned long function_start_time = millis();
-    while (millis() - function_start_time < moving_time)
-    {
-        float dist = this->get_IR_distance();
-
-        if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
-        {
-            Serial.println("Obstacle détecté ! Arrêt du robot.");
-            this->stop();
-        }
-        else
-        {
-            this->set_speed(speed, -speed);
-        }
-    }
-    this->stop();
-}
-
-/*
-Arrête les moteurs de manière linéaire au lieu d'un échelon
-*/
-void Pami::stop()
-{
-    moteur_d->stop();
-    moteur_g->stop();
-}
-
-/*
-Allume les deux moteurs à une vitesse en (entre 0 et 255)
-$ TO DO : Faire un trapèze
-*/
-void Pami::set_speed(int speed_d, int speed_g)
-{
-    moteur_d->set_speed(speed_d);
-    moteur_g->set_speed(speed_g);
-}
-
-/*
-Fonction pour bouger le servo entre deux angles en un temps donné
-*/
-void Pami::blink_servo(int angle1, int angle2, long temps_blink)
-{
-    servo->blink(angle1, angle2, temps_blink);
-}
-
-/*
-Fonction qui retourne la distance minimal au prochain obstacle détectée par le capteur infrarouge (ToF)
-En mm
-*/
-double Pami::get_IR_distance()
-{
-    if (ir_sensor == nullptr)
-    {
-        Serial.println("Pas de capteur infrarouge");
-        return -1;
-    }
-    else
-    {
-        ir_sensor->loop();
-        return ir_sensor->ir_minimum_distance;
-    }
-}
-
-/*
-Affiche les valeurs des encodeurs en nombre de ticks et en cm
-Faire attention car les valeurs des encodeurs sont reset après chaque action -> n'est utile que pendant un mouvement
-*/
-void Pami::print_encodeur()
-{
-    if (millis() - m_time_log > 250)
-    {
-        float ticks_g = encodeur_g->mesure();
-        float ticks_d = encodeur_d->mesure();
-
-        Serial.println("Encodeur gauche : " + String(ticks_g) + " ticks & " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
-        Serial.println(" | Encodeur droit : " + String(ticks_d) + " ticks & " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
-    }
-}
-
-/*
-Affiche les modifications d'interrupteur
-*/
-void Pami::print_infos_interrupteur()
-{
-    if (digitalRead(PIN_TIRETTE) != tirette)
-    {
-        tirette = digitalRead(PIN_TIRETTE);
-        Serial.print(tirette == 1 ? "Tirette en place \n" : "Tirette enlevée \n");
-    }
-    if (digitalRead(PIN_READEQUIPE) != equipe)
-    {
-        equipe = digitalRead(PIN_READEQUIPE);
-        Serial.print(equipe == 1 ? "Equipe : JAUNE \n" : "Equipe : BLEUE \n");
-    }
-    if (digitalRead(PIN_INT_PAMI_1) != int_pami_1 || digitalRead(PIN_INT_PAMI_2) != int_pami_2)
-    {
-        int_pami_1 = digitalRead(PIN_INT_PAMI_1);
-        int_pami_2 = digitalRead(PIN_INT_PAMI_2);
-        num_pami = (int_pami_1 * 2) + int_pami_2 + 1;
-        Serial.print("PAMI n°" + String(num_pami) + "\n");
-    }
-}
-
-/*
-Affiche des logs sur la pami
-*/
-void Pami::print_log()
-{
-    if (m_time_log + 500 < millis()) // Log toutes les secondes
-    {
-        Serial.println("------------- Time since match started : " + String((millis() - m_time_match) / 1000) + " s -------------");
-        Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
-        Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
-        this->print_infos_interrupteur();
-
-        m_time_log = millis();
-    }
-}
-
-/*
 Avancer en ligne droite, on veut que chaque moteur avance de consigne_angle mm
 Recule si consigne_mm < 0
 */
@@ -392,8 +212,8 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_mm, unsign
         if (abs(consigne_mm * GAIN_MM_TO_TICKS - ticks_g) < MARGE_ERREUR_TICKS && abs(consigne_mm * GAIN_MM_TO_TICKS - ticks_d) < MARGE_ERREUR_TICKS)
         {
             // ON RENTRE & on nettoie les encodeurs !!
-            // this->set_speed(0, 0);
-            this->stop();
+            this->set_speed(0, 0);
+            // this->stop();
             encodeur_g->clear_count();
             encodeur_d->clear_count();
             etape_globale++;
@@ -486,5 +306,186 @@ unsigned long Pami::tourner_asservi(int etape_d_appel, float consigne_angle, uns
 
         // On renvoie les nouvelles valeurs
         return millis();
+    }
+}
+
+/*
+Fonctions de déplacement basiques (sans asservissement, juste pour tester les fonctions de base et régler les gains K_NAIF et K_ANGLE_NAIF
+*/
+void Pami::go_to(float distance_x, float distance_y, int speed)
+{
+    this->avancer(distance_x, speed);
+    delay(200);
+    this->tourner(90, speed);
+    delay(200);
+    this->avancer(distance_y, speed);
+    delay(200);
+}
+
+/*
+Avance d'une distance en attendant un certain temps sans aucun asservissement
+Ce temps est corrigé par K_NAIF pour avoir la bonne distance
+K_NAIF dépend du robot, a vous de le changer au début
+*/
+void Pami::avancer(float distance, int speed)
+{
+    if (distance < 0.)
+    {
+        speed = -speed;
+    }
+
+    long moving_time = K_NAIF * (abs(distance) / SPEED) * 1000;
+    Serial.print("Temps estimé pour avancer de " + String(distance / 10.0) + " cm à la vitesse de " + String(speed) + " : " + String(moving_time) + " ms");
+
+    unsigned long function_start_time = millis();
+    while (millis() - function_start_time < moving_time)
+    {
+        float dist = this->get_IR_distance();
+
+        if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
+        {
+            Serial.println("Obstacle détecté ! Arrêt du robot.");
+            this->stop();
+        }
+        else
+        {
+            this->set_speed(speed, speed);
+        }
+    }
+    this->stop();
+}
+
+/*
+Tourne d'un angle en attendant un certain temps sans aucun asservissement
+Ce temps est corrigé par K_ANGLE_NAIF pour avoir le bon angle
+K_ANGLE_NAIF dépend du robot, à vous de le changer au début
+*/
+void Pami::tourner(float angle_degres, float speed)
+{
+    if (angle_degres < 0)
+    {
+        speed = -speed;
+    }
+
+    long moving_time = K_ANGLE_NAIF * (abs(angle_degres) / 360.0) * 1000;
+    Serial.print("Temps estimé pour tourner de " + String(angle_degres) + " ° à la vitesse de " + String(speed) + " : " + String(K_ANGLE_NAIF * (abs(angle_degres) / 360.0) * 1000) + " ms");
+
+    unsigned long function_start_time = millis();
+    while (millis() - function_start_time < moving_time)
+    {
+        float dist = this->get_IR_distance();
+
+        if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
+        {
+            Serial.println("Obstacle détecté ! Arrêt du robot.");
+            this->stop();
+        }
+        else
+        {
+            this->set_speed(speed, -speed);
+        }
+    }
+    this->stop();
+}
+
+/*
+Arrête les moteurs de manière linéaire au lieu d'un échelon
+Est bloquante
+*/
+void Pami::stop()
+{
+    moteur_d->stop();
+    moteur_g->stop();
+}
+
+/*
+Allume les deux moteurs à une vitesse en (entre 0 et 255)
+$ TO DO : Faire un trapèze
+*/
+void Pami::set_speed(int speed_d, int speed_g)
+{
+    moteur_d->set_speed(speed_d);
+    moteur_g->set_speed(speed_g);
+}
+
+/*
+Fonction pour bouger le servo entre deux angles en un temps donné
+*/
+void Pami::blink_servo(int angle1, int angle2, long blink_time)
+{
+    servo->blink(angle1, angle2, blink_time);
+}
+
+/*
+Fonction qui retourne la distance minimal au prochain obstacle détectée par le capteur infrarouge (ToF)
+En mm
+*/
+double Pami::get_IR_distance()
+{
+    if (ir_sensor == nullptr)
+    {
+        Serial.println("Pas de capteur infrarouge");
+        return -1;
+    }
+    else
+    {
+        ir_sensor->loop();
+        return ir_sensor->ir_minimum_distance;
+    }
+}
+
+/*
+Affiche les valeurs des encodeurs en nombre de ticks et en cm
+Faire attention car les valeurs des encodeurs sont reset après chaque action -> n'est utile que pendant un mouvement
+*/
+void Pami::print_encodeur()
+{
+    if (millis() - m_time_log > 250)
+    {
+        float ticks_g = encodeur_g->mesure();
+        float ticks_d = encodeur_d->mesure();
+
+        Serial.println("Encodeur gauche : " + String(ticks_g) + " ticks & " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
+        Serial.println(" | Encodeur droit : " + String(ticks_d) + " ticks & " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
+    }
+}
+
+/*
+Affiche les modifications d'interrupteur
+*/
+void Pami::print_infos_interrupteur()
+{
+    if (digitalRead(PIN_TIRETTE) != tirette)
+    {
+        tirette = digitalRead(PIN_TIRETTE);
+        Serial.print(tirette == 1 ? "Tirette en place \n" : "Tirette enlevée \n");
+    }
+    if (digitalRead(PIN_READEQUIPE) != equipe)
+    {
+        equipe = digitalRead(PIN_READEQUIPE);
+        Serial.print(equipe == 1 ? "Equipe : JAUNE \n" : "Equipe : BLEUE \n");
+    }
+    if (digitalRead(PIN_INT_PAMI_1) != int_pami_1 || digitalRead(PIN_INT_PAMI_2) != int_pami_2)
+    {
+        int_pami_1 = digitalRead(PIN_INT_PAMI_1);
+        int_pami_2 = digitalRead(PIN_INT_PAMI_2);
+        num_pami = (int_pami_1 * 2) + int_pami_2 + 1;
+        Serial.print("PAMI n°" + String(num_pami) + "\n");
+    }
+}
+
+/*
+Affiche des logs sur la pami
+*/
+void Pami::print_log()
+{
+    if (m_time_log + 500 < millis()) // Log toutes les secondes
+    {
+        Serial.println("------------- Time since match started : " + String((millis() - m_time_match) / 1000) + " s -------------");
+        Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
+        Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
+        this->print_infos_interrupteur();
+
+        m_time_log = millis();
     }
 }
