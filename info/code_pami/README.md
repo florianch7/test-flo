@@ -1,5 +1,9 @@
 # 🤖 Code pour les PAMIs - by Jules & Flo & Antoine (2026)
 
+// Parler des TICKS_TO_CM - on utilise des ticks et convertir blabla
+// Tout mettre en mm
+// Rampes set_speed & stop
+
 ## ⚠️ IMPORTANT : À LIRE AVANT D'ALLER FOUILLER LES FONCTIONS
 
 > 💡 **Note des auteurs :** Le code est bien fait mais pas forcément explicite au premier abord. Cette aide est censée vous aider à y voir plus clair.
@@ -58,43 +62,25 @@ Pour définir une séquence d'action (ex: déplacement), on veut attendre que la
 
 ### 🛠️ Comment utilise-t-on ces fonctions ?
 
-On a une variable d'étape (`etape_globale`) & deux variables de temps (`oldtime` & `newtime`).
-
->❓ **Pourquoi deux variables de temps ?** Uniquement pour `delay_non_bloquant`.
+On a une variable d'étape (`etape_globale`) & une variables de temps (`callbacktime`).
 
 On leur donne en paramètre un **numéro d'étape** qui sera comparé à `etape_globale` pour savoir si son tour est venu.
-On leur donne aussi leur **dernier temps d'exécution** (`old_time`) pour gérer leur fréquence d'exécution. *(Pour l'asservissement on l'exécute toutes les `FREQ_ASSERV` sinon ça explose, ça va trop vite, et on a besoin du dernier temps d'exécution pour ça)*.
+On leur donne aussi le **dernier temps réel d'exécution** (`callbacktime`) pour gérer leur fréquence d'exécution. *(Pour l'asservissement on l'exécute toutes les `FREQ_ASSERV` sinon ça explose, ça va trop vite, et on a besoin du dernier temps d'exécution pour ça)*.
 
 * **Si ce n'est pas leur tour / pas le bon moment d'être appelée** (fréquence pas atteinte) : on retourne le dernier temps d'exécution sans rien modifier.
 * **Si c'est leur tour & que la fréquence voulue est atteinte** : on exécute le corps de la fonction & on met à jour le temps d'exécution.
 * **Si elle a fini son rôle** (certaines fonctions s'éxecutent plusieurs fois avant d'avoir fini, avancer_asserv par exemple) : on met à jour la variable d'étape globale et on passe à la suivante
 
-> 🔤 **Structure :** `newtime = fonction_non_bloquante_sequentielle(num_appel, oldtime, autres_params);`
-
-💭 *Vous pourriez vous dire : "Mais pourquoi on donne oldtime si c'est pour qu'il devienne toujours newtime ?"*
-En effet, soit il est retourné (donc `newtime = oldtime`), soit `newtime = millis()` & au début de la boucle `oldtime = newtime`. Et ici vous avez raison, **tout est à cause de `delay_non_bloquant`.**
+> 🔤 **Structure :** `callbacktime = fonction_non_bloquante_sequentielle(num_appel, autres_params, callbacktime);`
 
 ---
 
 <!-- ### 🔍 Questions / Pistes de réflexion sur le code : -->
 
-> ❓ *Je peux pas supprimer la boucle du début et remplacer oldtime par newtime dans les appels de fonctions ?*
-
 `delay_non_bloquant` est un peu différent, il ne retourne pas de temps. En effet son rôle est de "bloquer" le temps mais uniquement celui de la file d'appel. Il s'agit simplement d'une étape qui ne passe pas à l'étape suivante durant toute la durée du delay souhaité. <br>
-Il a donc une étape d'appel comme les autres et, en théorie, pourrait retourner constamment `oldtime` le temps précédent -> aucun intérêt donc ne retourne rien.
+Il a donc une étape d'appel comme les autres et, en théorie, pourrait retourner constamment `callbacktime` le temps précédent -> aucun intérêt donc ne retourne rien.
 
-
-> 🔤 **Structure :** `delay_non_bloquant(n° d'appel, oldtime, temps de delay);` *// Delay de DELAY_TIME par défaut*
-
-> ❓ *Elles pourraient prendre newtime & on supprime le newtime = oldtime au début de chaque boucle -> oldtime useless ?*
-
-Si on met à jour `oldtime = newtime` pour l'appel d'un delay, la condition `(millis() - oldtime) > delay` n'est jamais atteinte car `oldtime = newtime`
-
-> (mais `newtime` vaut toujours `oldtime` car les autres fonctions de la file ne sont pas a la bonne etape...)
-
-#### 🧪 À tester :
-* [ ] Tester d'enlever la boucle et voir si delay fonctionne encore.
-* [ ] Si oui, tester aussi de supprimer `oldtime`.
+> 🔤 **Structure :** `delay_non_bloquant(n° d'appel, callbacktime, temps de delay);` *// Delay de DELAY_TIME par défaut*
 
 ---
 

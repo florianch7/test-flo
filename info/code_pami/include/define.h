@@ -75,25 +75,24 @@ CONFIG DES PAMI
 #define PIN_READEQUIPE 19 // PIN pour lire l'interrupteur qui defini l'équipe
 #define PIN_TIRETTE 23    // PIN de la tirette pour lancer le match
 
-/*
-    Low & Low : Première
-    Low & High : Deuxième
-    High & Low : Troisième
-    High & High : Quatrième
-*/
+// Low & Low : Première
+// Low & High : Deuxième
+// High & Low : Troisième
+// High & High : Quatrième
+
 #define PIN_INT_PAMI_1 16 // PIN interrupteur 1 pour le numéro de la PAMI
 #define PIN_INT_PAMI_2 17 // PIN interrupteur 2 pour le numéro de la PAMI
 
 /*
 Paramètres globaux
 */
-#define ENDTIME 99000    // Temps global de la pami en ms (99s)
-#define START_TIME 85000 // Les pamis commencent dans les 15 dernières secondes.
-#define DELAY_TIME 200   // Temps de delay pour les fonctions non bloquantes
-#define SPEED 255        // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
-#define DISTANCE_MIN 80  // Distance minimale pour éviter un obstacle en mm
-#define EPSP 100         // Incertitude position, cm
-#define EPSA 0.1         // Incertitude position, radian
+#define END_TIME 99000  // Temps global de la pami en ms (99s)
+#define START_TIME 5000 // Les pamis commencent dans les 15 dernières secondes.
+#define DELAY_TIME 200  // Temps de delay pour les fonctions non bloquantes
+#define SPEED 255       // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
+#define DISTANCE_MIN 80 // Distance minimale pour éviter un obstacle en mm
+#define EPSP 100        // Incertitude position, cm
+#define EPSA 0.1        // Incertitude position, radian
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -110,8 +109,9 @@ Paramètres de l'asservissement
 #define INTERVAL_ASSERV 50.0     // en ms
 #define MARGE_ERREUR_TICKS 100.0 // Nombre de ticks autorisés
 
-#define GAIN_CM_TO_TICKS 90.9     // Dépend de la pami ?
-#define GAIN_ANGLE_TO_TICKS 11.73 // à régler à la main avec un 3-6 no scope.
+// Gain qui dépendent des moteurs/encodeurs/pami - à régler correctement
+#define GAIN_MM_TO_TICKS 9.9
+#define GAIN_ANGLE_TO_TICKS 11.73
 
 // Define Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite))
 // Chaque pami à ses propres positions en cm

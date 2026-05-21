@@ -43,7 +43,7 @@ public:
     // Fonctions non bloquantes qui nécessite un numéro pour être appelée dans l'ordre
     // Sinon elles s'executeraient toutes en même temps
     // $ Faire PID & asserv rcva (à faire)
-    unsigned long avancer_asservi(int etape_d_appel, float consigne_cm, unsigned long oldtime);
+    unsigned long avancer_asservi(int etape_d_appel, float consigne_mm, unsigned long oldtime);
     unsigned long tourner_asservi(int etape_d_appel, float consigne_angle, unsigned long oldtime);
 
     // Avancer basiquement sans asserv

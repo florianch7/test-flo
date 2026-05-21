@@ -283,8 +283,8 @@ void Pami::print_encodeur()
         float ticks_g = encodeur_g->mesure();
         float ticks_d = encodeur_d->mesure();
 
-        Serial.println("Encodeur gauche : " + String(ticks_g) + " ticks & " + String(ticks_g / GAIN_CM_TO_TICKS) + " cm");
-        Serial.println(" | Encodeur droit : " + String(ticks_d) + " ticks & " + String(ticks_d / GAIN_CM_TO_TICKS) + " cm");
+        Serial.println("Encodeur gauche : " + String(ticks_g) + " ticks & " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
+        Serial.println(" | Encodeur droit : " + String(ticks_d) + " ticks & " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
     }
 }
 
@@ -329,10 +329,10 @@ void Pami::print_log()
 }
 
 /*
-Avancer en ligne droite, on veut que chaque moteur avance de consigne_angle cm
-Recule si consigne_cm < 0
+Avancer en ligne droite, on veut que chaque moteur avance de consigne_angle mm
+Recule si consigne_mm < 0
 */
-unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_cm, unsigned long oldtime)
+unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_mm, unsigned long oldtime)
 {
     // Si c'est pas l'étape à laquelle on veut l'appeler,
     // aucune des variables du main n'est modifiée
@@ -364,8 +364,8 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_cm, unsign
         float ticks_d = encodeur_d->mesure();
         float ticks_g = encodeur_g->mesure();
 
-        // Serial.print("Roue droite (cm) : " + String(ticks_d / GAIN_CM_TO_TICKS));
-        // Serial.println(" | Roue gauche (cm) : " + String(ticks_g / GAIN_CM_TO_TICKS));
+        // Serial.print("Roue droite (mm) : " + String(ticks_d / GAIN_MM_TO_TICKS));
+        // Serial.println(" | Roue gauche (mm) : " + String(ticks_g / GAIN_MM_TO_TICKS));
 
         // --- Erreurs ---
         // l'erreur peut-être négative
@@ -376,7 +376,7 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_cm, unsign
         int pwmD = SPEED + KP * erreur;
         int pwmG = SPEED - KP * erreur;
         // si on recule, on remplace les valeurs
-        if (consigne_cm < 0)
+        if (consigne_mm < 0)
         {
             pwmD = -SPEED + KP * erreur;
             pwmG = -SPEED - KP * erreur;
@@ -389,7 +389,7 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_cm, unsign
         this->set_speed(pwmD, pwmG);
 
         // --- Condition d’arrêt en ticks ---
-        if (abs(consigne_cm * GAIN_CM_TO_TICKS - ticks_g) < MARGE_ERREUR_TICKS && abs(consigne_cm * GAIN_CM_TO_TICKS - ticks_d) < MARGE_ERREUR_TICKS)
+        if (abs(consigne_mm * GAIN_MM_TO_TICKS - ticks_g) < MARGE_ERREUR_TICKS && abs(consigne_mm * GAIN_MM_TO_TICKS - ticks_d) < MARGE_ERREUR_TICKS)
         {
             // ON RENTRE & on nettoie les encodeurs !!
             // this->set_speed(0, 0);
@@ -405,7 +405,7 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_cm, unsign
 }
 
 /*
-Tourne sur lui même, on veut que chaque moteur avance de consigne_angle cm dans des sens opposés
+Tourne sur lui même, on veut que chaque moteur avance de consigne_angle dans des sens opposés
 consigne angle > 0 = sens trigo
 consigne angle < 0 = sens horaire
 */
