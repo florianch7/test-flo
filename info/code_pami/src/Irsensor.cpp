@@ -96,9 +96,6 @@ void Irsensor::loop()
                     }
                 }
                 ir_minimum_distance = min_distance;
-
-                // Serial.print("Minimum distance_centrale: ");
-                // Serial.println(measurementData.distance_mm[35]);
             }
         }
         m_time = millis();

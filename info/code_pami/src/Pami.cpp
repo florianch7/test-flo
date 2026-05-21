@@ -149,19 +149,6 @@ void Pami::test(int mode)
 }
 
 /*
-Mets à jour tous les interrupteurs pour l'équipe & n°PAMI
-*/
-void Pami::update_interrupteur()
-{
-    // Equipe de la PAMI
-    int read_equipe = digitalRead(PIN_READEQUIPE);
-    // Position initiale de la PAMI avec deux interrupteurs;
-    int int_pami_1 = digitalRead(PIN_INT_PAMI_1);
-    int int_pami_2 = digitalRead(PIN_INT_PAMI_2);
-    int read_num_pami = (int_pami_1 * 2) + int_pami_2 + 1;
-}
-
-/*
 Fonctions de déplacement basiques (sans asservissement, juste pour tester les fonctions de base et régler les gains K_NAIF et K_ANGLE_NAIF
 */
 void Pami::go_to(float distance_x, float distance_y, int speed)
@@ -302,22 +289,6 @@ void Pami::print_encodeur()
 }
 
 /*
-Affiche des logs sur la pami
-*/
-void Pami::print_log()
-{
-    if (m_time_log + 500 < millis()) // Log toutes les secondes
-    {
-        Serial.println("------------- Time since match started : " + String((millis() - m_time_match) / 1000) + " s -------------");
-        Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
-        Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
-        this->print_infos_interrupteur();
-
-        m_time_log = millis();
-    }
-}
-
-/*
 Affiche les modifications d'interrupteur
 */
 void Pami::print_infos_interrupteur()
@@ -338,6 +309,22 @@ void Pami::print_infos_interrupteur()
         int_pami_2 = digitalRead(PIN_INT_PAMI_2);
         num_pami = (int_pami_1 * 2) + int_pami_2 + 1;
         Serial.print("PAMI n°" + String(num_pami) + "\n");
+    }
+}
+
+/*
+Affiche des logs sur la pami
+*/
+void Pami::print_log()
+{
+    if (m_time_log + 500 < millis()) // Log toutes les secondes
+    {
+        Serial.println("------------- Time since match started : " + String((millis() - m_time_match) / 1000) + " s -------------");
+        Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
+        Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
+        this->print_infos_interrupteur();
+
+        m_time_log = millis();
     }
 }
 

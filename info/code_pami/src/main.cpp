@@ -21,11 +21,11 @@ int etape_globale = 0;
 float newtime;
 float oldtime;
 
-void delay_non_bloquant(int etape_d_appel, unsigned long oldtime)
+void delay_non_bloquant(int etape_d_appel, unsigned long oldtime, long delay = DELAY_TIME)
 {
-    if ((millis() - oldtime > DELAY_TIME) && (etape_globale == etape_d_appel))
+    if ((millis() - oldtime > delay) && (etape_globale == etape_d_appel))
     {
-        Serial.println("Etape_global : " + String(etape_globale));
+        Serial.println("Etape globale : " + String(etape_globale));
         etape_globale++; // suivant
     }
 };
@@ -74,8 +74,6 @@ void setup()
 
     while (digitalRead(PIN_TIRETTE) == 1)
     {
-        // pami.update_interrupteur();
-
         if (millis() - last_diag > 500)
         {
             pami.print_infos_interrupteur();
@@ -94,17 +92,15 @@ void setup()
     oldtime = millis();
     newtime = millis();
 
-    // equivalent a newtime ?
+    // Temps du match & des logs
     pami.m_time_log = millis();
     pami.m_time_match = millis();
+
     Serial.println("Fin setup");
 }
 
 void loop()
 {
-    // Temps local pour des logs toutes les secondes
-    static unsigned long time_last_log = 0;
-
     // penser à ne pas updater le temps dans les délais !
     // remplir ici :
     int etapes_avec_delays[] = {1, 3, 5, 7, 9, 11, 13, 15};
@@ -119,6 +115,9 @@ void loop()
         }
     }
 
+    // Fonction constamment
+    pami.blink_servo(0, 90);
+
     // Condition de fin de match
     if (millis() - pami.m_time_match >= ENDTIME)
     {
@@ -130,11 +129,7 @@ void loop()
         }
     }
 
-    // Fonction constamment
-    pami.blink_servo(0, 90);
-
     float dist = pami.get_IR_distance();
-
     if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
     {
         Serial.println("Obstacle détecté ! Arrêt du robot.");
@@ -205,9 +200,9 @@ void loop()
         }
     }
 
-    if (millis() - time_last_log >= 1000)
+    if (millis() - pami.m_time_log >= 1000)
     {
         pami.print_log();
-        time_last_log = millis();
+        pami.m_time_log = millis();
     }
 }

@@ -1,13 +1,5 @@
 {
-  "cSpell.words": [
-    "bloquer",
-    "dépasse",
-    "empêche",
-    "l'heure",
-    "Quoi",
-    "s'exécuter",
-    "satu"
-  ],
+  "cSpell.words": [],
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
   "C_Cpp_Runner.debuggerPath": "gdb",

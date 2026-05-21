@@ -37,25 +37,32 @@ public:
 
     Pami(Moteur *p_moteur_d, Moteur *p_moteur_g, Encodeur *p_encodeur_d, Encodeur *p_encodeur_g, Serv *p_servo, Irsensor *p_ir_sensor = nullptr, Ultrason *p_ultrason = nullptr);
 
+    // $ Fonctions de test pour chaque élement (à faire)
     void test(int mode);
 
     // Fonctions non bloquantes qui nécessite un numéro pour être appelée dans l'ordre
     // Sinon elles s'executeraient toutes en même temps
+    // $ Faire PID & asserv rcva (à faire)
     unsigned long avancer_asservi(int etape_d_appel, float consigne_cm, unsigned long oldtime);
     unsigned long tourner_asservi(int etape_d_appel, float consigne_angle, unsigned long oldtime);
 
     // Avancer basiquement sans asserv
-    void go_to(float distance_x, float distance_y, int speed = SPEED);
     void avancer(float distance, int speed = SPEED);
     void tourner(float angle_degres, float speed = SPEED);
+    void go_to(float distance_x, float distance_y, int speed = SPEED);
 
-    // Allume (TODO) et éteint les moteurs avec un trapèze
-    void stop();
+    // $ Allume (TODO) et éteint les moteurs avec un trapèze i.e une rampe (à faire)
     void set_speed(int speed_d, int speed_g);
+    void stop();
 
     void blink_servo(int angle1, int angle2, long temps_blink = TEMPS_BLINK);
     double get_IR_distance();
-    void update_interrupteur();
+
+    // $ Ecran (à faire)
+    void afficher_ecran(String ligne1);
+
+    // $ Potentiomètre (à faire)
+    int get_numero_pami(int pin);
 
     // Fonctions de log
     void print_log();
