@@ -10,8 +10,6 @@ private:
     Encodeur *encodeur_g;
     Encodeur *encodeur_d;
 
-    float x_origin = 0.0;
-    float y_origin = 0.0;
     unsigned long m_last_update;
     unsigned long m_log_update;
 
