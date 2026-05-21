@@ -71,7 +71,7 @@ void Pami::test(int mode)
         float oldtime = time;
         while (true)
         {
-            time = this->avancer_asservi(0, 5000, oldtime);
+            this->avancer_asservi(0, 5000);
             this->print_encodeur();
             oldtime = time;
         }
@@ -149,37 +149,123 @@ void Pami::test(int mode)
 }
 
 /*
+Asservissement style rcva - fonction test
+*/
+void Pami::asserv_list(float mouvements[][2], int nb_mvt)
+{
+    static int num_current_mvt = 0;
+    static int pos_ref_distance = 0;
+    static int pos_ref_angle = 0;
+
+    if (millis() - this->m_time_asserv >= INTERVAL_ASSERV)
+    {
+        float consigne_distance_mm = mouvements[num_current_mvt][0];
+        float consigne_angle_degre = mouvements[num_current_mvt][1];
+
+        // Serial.print("Consigne distance (mm) : " + String(consigne_distance_mm));
+        // Serial.println(" | Consigne angle (°) : " + String(consigne_angle_degre));
+
+        // Serial.println("---------");
+
+        int pos_encodeur_d = encodeur_d->mesure();
+        int pos_encodeur_g = encodeur_g->mesure();
+
+        Serial.print("Pos_ref distance (mm) : " + String(pos_ref_distance / GAIN_MM_TO_TICKS));
+        Serial.println(" | Pos_ref angle (°) : " + String(pos_ref_angle / GAIN_ANGLE_TO_TICKS));
+
+        // Calculer la distance et l'angle du mouvement actuel en ticks
+        // On repart de l'origin à chaque nouveau mouvement, donc on soustrait la position de référence qui est la position d'arrivée du précédent
+        float distance_actuelle_ticks = (pos_encodeur_d + pos_encodeur_g) / 2.0 - pos_ref_distance;
+        float angle_actuel_ticks = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
+
+        Serial.print("Distance actuelle (mm) : " + String(distance_actuelle_ticks / GAIN_MM_TO_TICKS));
+        Serial.println(" | Angle actuel (°) : " + String(angle_actuel_ticks / GAIN_ANGLE_TO_TICKS));
+
+        // Calculer les erreurs en ticks
+        float erreur_distance_ticks = GAIN_MM_TO_TICKS * consigne_distance_mm - distance_actuelle_ticks;
+        float erreur_angle_ticks_ticks = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle_actuel_ticks;
+
+        Serial.print("erreur distance (mm) : " + String(erreur_distance_ticks / GAIN_MM_TO_TICKS));
+        Serial.println(" | erreur angle (°) : " + String(erreur_angle_ticks_ticks / GAIN_ANGLE_TO_TICKS));
+
+        Serial.println("---------");
+
+        // Appliquer les corrections proportionnelles
+        float correction_distance = KP_DISTANCE * erreur_distance_ticks;
+        float correction_angle = KP_ANGLE * erreur_angle_ticks_ticks;
+
+        // Convertir les corrections en commandes moteur
+        int commande_moteur_d = (int)(correction_distance + correction_angle);
+        int commande_moteur_g = (int)(correction_distance - correction_angle);
+
+        // Limiter les commandes entre -255 et 255
+        commande_moteur_d = constrain(commande_moteur_d, -255, 255);
+        commande_moteur_g = constrain(commande_moteur_g, -255, 255);
+
+        if (abs(consigne_distance_mm - distance_actuelle_ticks / GAIN_MM_TO_TICKS) < ERREUR_DISTANCE && abs(consigne_angle_degre - angle_actuel_ticks / GAIN_ANGLE_TO_TICKS) < MARGE_ERREUR_TICKS)
+        {
+            if (num_current_mvt < nb_mvt - 1)
+            {
+                num_current_mvt++;
+
+                // On récupère la position actuelle pour la prendre comme origine au prochain tour
+                pos_ref_distance = distance_actuelle_ticks;
+                pos_ref_angle = angle_actuel_ticks;
+            }
+        }
+
+        // Envoyer les commandes aux moteurs
+        this->set_speed(commande_moteur_d, commande_moteur_g);
+
+        this->m_time_asserv = millis();
+    }
+}
+
+/*
+Asservissement style rcva - fonction test
+*/
+void Pami::asserv(float consigne_distance_mm, float consigne_angle_degre)
+{
+    if (millis() - this->m_time_asserv >= INTERVAL_ASSERV)
+    {
+        int pos_encodeur_d = encodeur_d->mesure();
+        int pos_encodeur_g = encodeur_g->mesure();
+
+        // Calculer la distance et l'angle actuels
+        float distance_actuelle_ticks = (pos_encodeur_d + pos_encodeur_g) / 2.0;
+        float angle_actuel_ticks = (pos_encodeur_d - pos_encodeur_g);
+
+        // Calculer les erreurs
+        float erreur_distance_ticks = consigne_distance_mm * GAIN_MM_TO_TICKS - distance_actuelle_ticks;
+        float erreur_angle_ticks = consigne_angle_degre * GAIN_ANGLE_TO_TICKS - angle_actuel_ticks;
+
+        // Appliquer les corrections proportionnelles
+        float correction_distance = KP_DISTANCE * erreur_distance_ticks;
+        float correction_angle = KP_ANGLE * erreur_angle_ticks;
+
+        // Convertir les corrections en commandes moteur
+        int commande_moteur_d = (int)(correction_distance + correction_angle);
+        int commande_moteur_g = (int)(correction_distance - correction_angle);
+
+        // Limiter les commandes entre -255 et 255
+        commande_moteur_d = constrain(commande_moteur_d, -255, 255);
+        commande_moteur_g = constrain(commande_moteur_g, -255, 255);
+
+        // Envoyer les commandes aux moteurs
+        this->set_speed(commande_moteur_d, commande_moteur_g);
+        this->m_time_asserv = millis();
+    }
+}
+
+/*
 Avancer en ligne droite, on veut que chaque moteur avance de consigne_angle mm
 Recule si consigne_mm < 0
 */
-unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_mm, unsigned long oldtime)
+void Pami::avancer_asservi(int etape_d_appel, float consigne_mm)
 {
-    // Si c'est pas l'étape à laquelle on veut l'appeler,
-    // aucune des variables du main n'est modifiée
-    if (etape_d_appel != etape_globale)
+    // Si c'est l'étape à laquelle on veut l'appeler & que l'intervalle d'asservissement est écoulé, alors on asservit
+    if (etape_d_appel == etape_globale && (millis() - this->m_time_asserv) >= INTERVAL_ASSERV)
     {
-        return oldtime;
-    }
-    /* But du gain proportionnel : faire une correction proportionnelle à l'erreur.
-        En gros :
-        erreur = ticksG - ticksD
-        correction = Kp * erreur
-
-        Puis on ajuste le pwm :
-        pwmG = pwmBase - correction
-        pwmD = pwmBase + correction
-    */
-
-    // Si l’intervalle n’est pas écoulé -> on ne fait rien
-    if (millis() - oldtime < INTERVAL_ASSERV)
-    {
-        return oldtime;
-    }
-    else
-    {
-        // Sinon, c'est qu'on vient de dépasser l'invervalle d'asservissement.
-        // il faut donc asservir de nouveau
-
         // --- Mesures actuelles ---
         float ticks_d = encodeur_d->mesure();
         float ticks_g = encodeur_g->mesure();
@@ -219,9 +305,17 @@ unsigned long Pami::avancer_asservi(int etape_d_appel, float consigne_mm, unsign
             etape_globale++;
         }
 
-        // On renvoie les nouvelles valeurs
-        return millis();
+        this->m_time_asserv = millis();
     }
+    /* But du gain proportionnel : faire une correction proportionnelle à l'erreur.
+        En gros :
+        erreur = ticksG - ticksD
+        correction = Kp * erreur
+
+        Puis on ajuste le pwm :
+        pwmG = pwmBase - correction
+        pwmD = pwmBase + correction
+    */
 }
 
 /*
@@ -229,7 +323,7 @@ Tourne sur lui même, on veut que chaque moteur avance de consigne_angle dans de
 consigne angle > 0 = sens trigo
 consigne angle < 0 = sens horaire
 */
-unsigned long Pami::tourner_asservi(int etape_d_appel, float consigne_angle, unsigned long oldtime)
+void Pami::tourner_asservi(int etape_d_appel, float consigne_angle)
 {
     /* But du gain proportionnel : faire une correction proportionnelle à l'erreur.
     On prend la somme pour que chaque moteur fasse le même nombre de ticks dans des sens opposés et donc une erreur nulle
@@ -244,20 +338,8 @@ unsigned long Pami::tourner_asservi(int etape_d_appel, float consigne_angle, uns
 
     // Si c'est pas l'étape à laquelle on veut l'appeler,
     // aucune des variables du main n'est modifiée
-    if (etape_d_appel != etape_globale)
+    if (etape_d_appel == etape_globale && (millis() - this->m_time_asserv) >= INTERVAL_ASSERV)
     {
-        return oldtime;
-    }
-    // Si l’intervalle n’est pas écoulé -> on ne fait rien
-    if (millis() - oldtime < INTERVAL_ASSERV)
-    {
-        return oldtime;
-    }
-    else
-    {
-        // Sinon, c'est qu'on vient de dépasser l'invervalle d'asservissement.
-        // il faut donc asservir de nouveau
-
         // --- Mesures actuelles ---
         float ticks_d = encodeur_d->mesure();
         float ticks_g = encodeur_g->mesure();
@@ -304,8 +386,7 @@ unsigned long Pami::tourner_asservi(int etape_d_appel, float consigne_angle, uns
             etape_globale++;
         }
 
-        // On renvoie les nouvelles valeurs
-        return millis();
+        this->m_time_asserv = millis();
     }
 }
 
@@ -409,6 +490,19 @@ void Pami::set_speed(int speed_d, int speed_g)
 }
 
 /*
+Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
+Dépend du numéro de la PAMI & de l'équipe
+*/
+void Pami::set_initial_position()
+{
+    // $ Faire du if/else pour equipe & n° pami
+    this->pos_x = J_POSITION_1_DEPART_X;
+    this->pos_y = J_POSITION_1_DEPART_Y;
+    // A modifier si angle de départ différent de 0
+    this->pos_angle = 0;
+}
+
+/*
 Fonction pour bouger le servo entre deux angles en un temps donné
 */
 void Pami::blink_servo(int angle1, int angle2, long blink_time)
@@ -445,9 +539,20 @@ void Pami::print_encodeur()
         float ticks_g = encodeur_g->mesure();
         float ticks_d = encodeur_d->mesure();
 
-        Serial.println("Encodeur gauche : " + String(ticks_g) + " ticks & " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
-        Serial.println(" | Encodeur droit : " + String(ticks_d) + " ticks & " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
+        Serial.print("Encodeur gauche : " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
+        Serial.println(" | Encodeur droit : " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
     }
+}
+
+void Pami::update_position()
+{
+    // A faire : utiliser les ticks des encodeurs pour calculer la position absolue de la PAMI sur le terrain
+    // En utilisant la cinématique différentielle et en intégrant les mouvements au cours du temps
+    // On peut aussi utiliser les données du capteur IR pour corriger la position si un obstacle est détecté
+    //$ Trouver la formule pour calculer la position (x, y, theta) à partir des ticks des encodeurs
+    // pami.pos_x = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
+    // pami.pos_y = encodeur_g->mesure() / GAIN_MM_TO_TICKS;
+    // pami.pos_angle = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
 }
 
 /*
@@ -481,10 +586,11 @@ void Pami::print_log()
 {
     if (m_time_log + 500 < millis()) // Log toutes les secondes
     {
-        Serial.println("------------- Time since match started : " + String((millis() - m_time_match) / 1000) + " s -------------");
+        Serial.println("--- Time since match started : " + String((millis() - m_time_match) / 1000) + " s ---");
         Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
         Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
         this->print_infos_interrupteur();
+        this->print_encodeur();
 
         m_time_log = millis();
     }

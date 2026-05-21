@@ -18,11 +18,11 @@ Pami pami = Pami(&moteur_d, &moteur_g, &encodeur_d, &encodeur_g, &servo, &ir_sen
 
 // Compteur de la variable globale d'ordre d'appel de la file
 int etape_globale = 0;
-unsigned long callbacktime;
 
-void delay_non_bloquant(int etape_d_appel, unsigned long time, long delay = 10 * DELAY_TIME)
+// Marche pas sans le callback - lui donner son propre temps de référence
+void delay_non_bloquant(int etape_d_appel, unsigned long oldtime, long delay = 10 * DELAY_TIME)
 {
-    if ((millis() - time > delay) && (etape_globale == etape_d_appel))
+    if ((millis() - oldtime > delay) && (etape_globale == etape_d_appel))
     {
         Serial.println("Etape globale : " + String(etape_globale));
         etape_globale++; // suivant
@@ -85,21 +85,28 @@ void setup()
     encodeur_g.clear_count();
     encodeur_d.clear_count();
 
-    // pami.test(4);
-
-    // Temps des fonctions non bloquantes
-    callbacktime = millis();
+    // pami.set_initial_position();
 
     // Temps du match & des logs
     pami.m_time_log = millis();
     pami.m_time_match = millis();
+    pami.m_time_asserv = millis();
 }
+
+// Liste des mouvemnts à réaliser : {distance en mm, angle en degrés}
+float mouvements[][2] = {
+    {500, 90}, // 0 : avancer 100 mm
+    // {-30, 0}, // 1 : reculer 300 mm
+    // {0, 90},  // 2 : tourner 90°
+    // {150, 0}, // 3 : avancer 50 mm
+};
+int nb_mouvements = sizeof(mouvements) / sizeof(mouvements[0]);
 
 void loop()
 {
     // $ Tester pami.stop()
-    // Fonction constamment - pas nécessaire
-    pami.blink_servo(0, 90);
+    // Constamment actif
+    pami.asserv_list(mouvements, nb_mouvements);
 
     // Condition de fin de match
     if (millis() - pami.m_time_match >= END_TIME)
@@ -112,80 +119,21 @@ void loop()
         }
     }
 
-    float dist = pami.get_IR_distance();
-    if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
-    {
-        Serial.println("Obstacle détecté ! Arrêt du robot.");
-        pami.stop();
-        return;
-    }
+    // float dist = pami.get_IR_distance();
+    // if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
+    // {
+    //     Serial.println("Obstacle détecté ! Arrêt du robot.");
+    //     pami.stop();
+    //     return;
+    // }
 
     if ((millis() - pami.m_time_match) > START_TIME && (millis() - pami.m_time_match) < END_TIME)
     {
-        callbacktime = pami.avancer_asservi(0, 100, callbacktime);
-        delay_non_bloquant(1, callbacktime, 200);
-        callbacktime = pami.tourner_asservi(2, -90, callbacktime);
-        delay_non_bloquant(3, callbacktime, 200);
-        callbacktime = pami.avancer_asservi(4, 100, callbacktime);
+        // consigne_distance = 100;
 
-        // pami.print_infos_interrupteur();
-        // if (pami.num_pami == 1)
-        // {
-        //     if (pami.equipe == 0) // 0 = bleue, 1 = jaune
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, B_DELTA_1_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, -90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, B_DELTA_1_Y, callbacktime);
-        //     }
-        //     else
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, J_DELTA_1_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, 90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, J_DELTA_1_Y, callbacktime);
-        //     }
-        // }
-        // else if (pami.num_pami == 2)
-        // {
-        //     if (pami.equipe == 0) // 0 = bleue, 1 = jaune
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, B_DELTA_2_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, -90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, B_DELTA_2_Y, callbacktime);
-        //     }
-        //     else
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, J_DELTA_2_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, 90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, J_DELTA_2_Y, callbacktime);
-        //     }
-        // }
-        // else if (pami.num_pami == 3)
-        // {
-        //     if (pami.equipe == 0) // 0 = bleue, 1 = jaune
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, B_DELTA_3_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, 90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, B_DELTA_3_Y, callbacktime);
-        //     }
-        //     else
-        //     {
-        //         callbacktime = pami.avancer_asservi(0, J_DELTA_3_X, callbacktime);
-        //         delay_non_bloquant(1, callbacktime);
-        //         callbacktime = pami.tourner_asservi(2, -90, callbacktime);
-        //         delay_non_bloquant(3, callbacktime);
-        //         callbacktime = pami.avancer_asservi(4, J_DELTA_3_Y, callbacktime);
-        //     }
-        // }
+        // pami.avancer_asservi(0, 100);
+        // pami.tourner_asservi(1, 180);
+        // pami.avancer_asservi(2, 100);
     }
 
     if (millis() - pami.m_time_log >= 1000)

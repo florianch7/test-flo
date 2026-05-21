@@ -86,13 +86,13 @@ CONFIG DES PAMI
 /*
 Paramètres globaux
 */
-#define END_TIME 99000  // Temps global de la pami en ms (99s)
-#define START_TIME 5000 // Les pamis commencent dans les 15 dernières secondes.
-#define DELAY_TIME 200  // Temps de delay pour les fonctions non bloquantes
-#define SPEED 255       // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
-#define DISTANCE_MIN 80 // Distance minimale pour éviter un obstacle en mm
-#define EPSP 100        // Incertitude position, cm
-#define EPSA 0.1        // Incertitude position, radian
+#define END_TIME 99000     // Temps global de la pami en ms (99s)
+#define START_TIME 5000    // Les pamis commencent dans les 15 dernières secondes.
+#define DELAY_TIME 200     // Temps de delay pour les fonctions non bloquantes
+#define SPEED 255          // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
+#define DISTANCE_MIN 80    // Distance minimale pour éviter un obstacle en mm
+#define ERREUR_DISTANCE 10 // Incertitude position, mm
+#define ERREUR_ANGLE 1     // Incertitude position, degrés
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -105,13 +105,16 @@ Paramètres de l'asservissement
     A régler pour que le robot suive bien sa trajectoire
     Kp : gain proportionnel, plus il est grand plus le robot réagit vite à une erreur de position, mais peut causer des oscillations si trop élevé.
 */
+
 #define KP 1.0
-#define INTERVAL_ASSERV 50.0     // en ms
-#define MARGE_ERREUR_TICKS 100.0 // Nombre de ticks autorisés
+#define KP_DISTANCE 1.0
+#define KP_ANGLE 1.0
+#define INTERVAL_ASSERV 50.0    // en ms
+#define MARGE_ERREUR_TICKS 50.0 // Nombre de ticks autorisés
 
 // Gain qui dépendent des moteurs/encodeurs/pami - à régler correctement
 #define GAIN_MM_TO_TICKS 9.9
-#define GAIN_ANGLE_TO_TICKS 11.73
+#define GAIN_ANGLE_TO_TICKS 23
 
 /*
 Define Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite))
