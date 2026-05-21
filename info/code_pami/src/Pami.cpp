@@ -17,17 +17,16 @@ Modes :
 1 = Interrupteurs & Tirette
 2 = Capteur IR (ToF)
 3 = Servomoteur
-4 =
-5 = Encodeurs & Odométrie (À pousser à la main)
-6 = Moteurs Individuels (Puissance brute)
-7 = Homologation : Avance et s'arrête en fonction du capteur IR
-8 = Avancer, reculer, tourner (Sans asservissement, juste pour voir si les fonctions de base marchent &  régler les gains)
+4 = Moteurs & Encodeurs individuels (tests des sens)
+5 = Homologation : Avance et s'arrête si obstacle (capteur IR)
+6 = Réglage gains de convertion mm (GAIN_MM_TO_TICKS)
+7 = Réglage gains de convertion angle (GAIN_ANGLE_TO_TICKS)
+8 = Réglage gains distance (K_NAIF)
+9 = Réglage gains angle (K_ANGLE_NAIF)
 */
 void Pami::test(int mode)
 {
-    Serial.print("\n========== LANCEMENT DU TEST MODE : ");
-    Serial.print(mode);
-    Serial.println(" ==========");
+    Serial.print("\n========== LANCEMENT DU TEST MODE : " + String(mode) + " ==========\n");
 
     switch (mode)
     {
@@ -37,8 +36,7 @@ void Pami::test(int mode)
         while (true)
         {
             this->print_infos_interrupteur();
-            Serial.println("-------------------------");
-            delay(1000); // On attend 1s pour ne pas spammer le terminal
+            delay(500);
         }
         break;
     }
@@ -57,92 +55,186 @@ void Pami::test(int mode)
     }
     case 3: // --- TEST 3 : SERVOMOTEUR ---
     {
-        Serial.println("Test Servomoteur : Va-et-vient de 3 secondes");
+        Serial.println("Test Servomoteur : Va-et-vient de 3 secondes (Boucle infinie)");
         while (true)
         {
             this->blink_servo(0, 90);
         }
-        Serial.println("Fin du test Servomoteur.");
         break;
     }
-    case 4: // --- Test 4 : GAINS ASSERVISSEMENT ---
+    case 4: // --- TEST 4 : MOTEURS & ENCODEURS INDIVIDUELS ---
     {
-        float time = millis();
-        float oldtime = time;
-        while (true)
-        {
-            this->avancer_asservi(0, 5000);
-            this->print_encodeur();
-            oldtime = time;
-        }
-        break;
-    }
-    case 5: // Essais roue droite & gauche indépendament
-    {
-        Serial.println("Test Moteurs Individuels : Attention, le robot va tester chaque roue indépendamment !");
+        Serial.println("Test Moteurs & Encodeurs : test de chaque roue independamment");
+        Serial.println("--- Verifiez que les valeurs des encodeurs sont POSITIVES quand on avance ---");
 
         while (true)
         {
-            Serial.println("\n-> Test Roue Droite (Vitesse 200)");
-            moteur_d->set_speed(SPEED);
+            Serial.println("\n>>> TEST ROUE DROITE (Vitesse 200, 2 sec)");
+            encodeur_d->clear_count();
+            encodeur_g->clear_count();
+            moteur_d->set_speed(200);
             moteur_g->stop();
-            this->print_encodeur();
-            delay(1500);
 
-            Serial.println("\n-> Arret");
             moteur_d->stop();
-            delay(1500);
+            Serial.print("  Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
+            delay(1000);
 
-            Serial.println("\n-> Test Roue Gauche (Vitesse 200)");
+            Serial.println("\n>>> TEST ROUE GAUCHE (Vitesse 200, 2 sec)");
+            encodeur_d->clear_count();
+            encodeur_g->clear_count();
             moteur_d->stop();
-            moteur_g->set_speed(SPEED);
-            this->print_encodeur();
-            delay(1500);
+            moteur_g->set_speed(200);
 
-            Serial.println("\n-> Arret Definitif");
+            Serial.println("  Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
+            moteur_g->stop();
+            delay(1000);
+
+            Serial.println("\n>>> TEST DEUX ROUES ENSEMBLE (Vitesse 200, 2 sec)");
+            encodeur_d->clear_count();
+            encodeur_g->clear_count();
+            moteur_d->set_speed(200);
+            moteur_g->set_speed(200);
+
+            Serial.println("Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
             moteur_d->stop();
             moteur_g->stop();
-            delay(1500);
-            Serial.println("Fin du test Moteurs Individuels.");
+
+            Serial.println("\n--- Fin d'une serie de tests. Restart dans 3 sec ---");
+            delay(3000);
         }
         break;
     }
-    case 7: // Homologation
+    case 5: // --- TEST 5 : HOMOLOGATION ---
     {
-        Serial.println("Homologation : Le robot avance et s'arrête lorsque le capteur IR détecte un obstacle à moins de 5 cm (Boucle infinie)");
+        Serial.println("Homologation : Robot avance tout droit et s'arrete si obstacle (< 8cm)");
+        Serial.println("Pressez la tirette pour commencer");
+
+        while (digitalRead(PIN_TIRETTE) == 1)
+        {
+            delay(100);
+        }
+
+        unsigned long last_print = millis();
 
         while (true)
         {
             float dist = this->get_IR_distance();
-            Serial.print("Distance mesuree : ");
-            Serial.print(dist / 10.0);
-            Serial.println(" cm");
 
-            if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
+            if (dist < DISTANCE_MIN && dist > 0.5)
             {
-                Serial.println("Obstacle détecté ! Arrêt du robot.");
-                this->stop();
+                Serial.println(">>> OBSTACLE DETECTE ! Arret du robot");
+                this->set_speed(0, 0);
             }
             else
             {
                 this->set_speed(SPEED, SPEED);
+
+                if (millis() - last_print >= 1000) // Affiche tous les 1s
+                {
+                    Serial.print("Distance: " + String(dist / 10.0) + " cm - Avance...");
+                    last_print = millis();
+                }
             }
-            delay(200);
+            delay(50);
         }
+
+        this->set_speed(0, 0);
+        Serial.println("Homologation terminee.");
         break;
     }
-    case 8:
+    case 6: // --- TEST 6 : REGLAGE GAINS CONVERTION MM <-> TICKS ---
     {
-        Serial.println("Test Avancer/Reculer/Tourner... Attention, le robot va avancer, reculer puis tourner !");
+        Serial.println("Reglage GAIN_MM_TO_TICKS & GAIN_ANGLE_TO_TICKS");
 
-        this->avancer(100);
+        // Test translation droite
+        Serial.println(">>> TEST TRANSLATION : Roues avancent ensemble");
+        Serial.println("Le robot va avancer pendant un certain temps. Mesurez la distance reelle parcourue");
+        Serial.println("Calculer ensuite le rapport entre le nombre de ticks moyen et la distance reelle pour trouver GAIN_MM_TO_TICKS");
+        encodeur_d->clear_count();
+        encodeur_g->clear_count();
+        Serial.print("Départ dans 5 sec");
+        delay(5000);
+
+        this->set_speed(SPEED, SPEED);
         delay(2000);
-        this->tourner(180);
-    }
+        this->set_speed(0, 0);
 
+        float ticks_d = encodeur_d->mesure();
+        float ticks_g = encodeur_g->mesure();
+        float ticks_avg = (ticks_d + ticks_g) / 2.0;
+
+        Serial.print("\n Translation totale - Ticks D: " + String(ticks_d) + " | Ticks G: " + String(ticks_g) + " | Moyenne: " + String(ticks_avg));
+        break;
+    }
+    case 7: // --- TEST 7 : REGLAGE GAINS CONVERTION ANGLE <-> TICKS ---
+    {       // Test rotation
+        Serial.println("\n>>> TEST ROTATION : Roues tournent en sens oppose");
+        Serial.println("Le robot va tourner pendant un certain temps. Mesurez l'angle reelle parcourue");
+        Serial.println("Calculer ensuite le rapport entre le nombre de ticks moyen et l'angle reelle pour trouver GAIN_ANGLE_TO_TICKS");
+        Serial.print("Départ dans 5 sec");
+        encodeur_d->clear_count();
+        encodeur_g->clear_count();
+        delay(5000);
+
+        this->set_speed(SPEED, -SPEED);
+        delay(2000);
+        this->set_speed(0, 0);
+
+        float ticks_d = encodeur_d->mesure();
+        float ticks_g = encodeur_g->mesure();
+        float ticks_diff = ticks_d - ticks_g;
+
+        Serial.print("\nFinal - Ticks D: " + String(ticks_d) + " | Ticks G: " + String(ticks_g) + " | Diff: " + String(ticks_diff));
+        break;
+    }
+    case 8: // --- TEST 8 : REGLAGE GAINS DISTANCE NAIFS ---
+    {
+        Serial.println("Reglage K_NAIF (gains naifs pour avancer sans asserv)\n");
+        Serial.println(">>> TEST K_NAIF : avance 500mm");
+        encodeur_d->clear_count();
+        encodeur_g->clear_count();
+        delay(2000);
+
+        long expected_time = K_NAIF * (500.0 / SPEED) * 1000;
+        Serial.print("Temps theorique : " + String(expected_time) + " ms");
+
+        this->set_speed(SPEED, SPEED);
+        delay(expected_time); // On attend le temps théorique pour faire le mouvement
+        this->stop();
+
+        float dist_d = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
+        float dist_g = encodeur_g->mesure() / GAIN_MM_TO_TICKS;
+        float dist_avg = (dist_d + dist_g) / 2.0;
+
+        Serial.print("\nDistance reelle parcourue: " + String(dist_avg) + " mm");
+        Serial.print("K_NAIF actuel: " + String(K_NAIF));
+        Serial.print("K_NAIF calcule: " + String(K_NAIF * (500.0 / dist_avg)));
+    }
+    case 9: // --- TEST 9 : REGLAGE GAINS ANGLE NAIFS ---
+    {
+        Serial.println("Reglage K_ANGLE_NAIF (gains naifs pour tourner sans asserv)\n");
+        Serial.println("\n>>> TEST K_ANGLE_NAIF : tourne 360 degres");
+        encodeur_d->clear_count();
+        encodeur_g->clear_count();
+        delay(2000);
+
+        long expected_time = K_ANGLE_NAIF * (360.0 / SPEED) * 1000;
+        Serial.print("Temps theorique : " + String(expected_time) + " ms");
+
+        this->set_speed(SPEED, -SPEED);
+        delay(expected_time); // On attend le temps théorique pour faire le mouvement
+        this->stop();
+
+        float angle = encodeur_d->mesure() / GAIN_ANGLE_TO_TICKS;
+        Serial.print("\nAngle reel : " + String(angle) + " deg");
+        Serial.print("K_ANGLE_NAIF actuel: " + String(K_ANGLE_NAIF));
+        Serial.print("K_ANGLE_NAIF calcule: " + String(K_ANGLE_NAIF * (360.0 / angle)));
+
+        break;
+    }
     default:
     {
-        Serial.println("Erreur : Mode de test inconnu ! (Choisissez entre 1 et 6)");
+        Serial.println("Erreur : Mode de test inconnu ! (Choisissez entre 1 et 9)");
         break;
     }
     }
@@ -162,33 +254,17 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
         float consigne_distance_mm = mouvements[num_current_mvt][0];
         float consigne_angle_degre = mouvements[num_current_mvt][1];
 
-        // Serial.print("Consigne distance (mm) : " + String(consigne_distance_mm));
-        // Serial.println(" | Consigne angle (°) : " + String(consigne_angle_degre));
-
-        // Serial.println("---------");
-
         int pos_encodeur_d = encodeur_d->mesure();
         int pos_encodeur_g = encodeur_g->mesure();
-
-        Serial.print("Pos_ref distance (mm) : " + String(pos_ref_distance / GAIN_MM_TO_TICKS));
-        Serial.println(" | Pos_ref angle (°) : " + String(pos_ref_angle / GAIN_ANGLE_TO_TICKS));
 
         // Calculer la distance et l'angle du mouvement actuel en ticks
         // On repart de l'origin à chaque nouveau mouvement, donc on soustrait la position de référence qui est la position d'arrivée du précédent
         float distance_actuelle_ticks = (pos_encodeur_d + pos_encodeur_g) / 2.0 - pos_ref_distance;
         float angle_actuel_ticks = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
 
-        Serial.print("Distance actuelle (mm) : " + String(distance_actuelle_ticks / GAIN_MM_TO_TICKS));
-        Serial.println(" | Angle actuel (°) : " + String(angle_actuel_ticks / GAIN_ANGLE_TO_TICKS));
-
         // Calculer les erreurs en ticks
         float erreur_distance_ticks = GAIN_MM_TO_TICKS * consigne_distance_mm - distance_actuelle_ticks;
         float erreur_angle_ticks_ticks = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle_actuel_ticks;
-
-        Serial.print("erreur distance (mm) : " + String(erreur_distance_ticks / GAIN_MM_TO_TICKS));
-        Serial.println(" | erreur angle (°) : " + String(erreur_angle_ticks_ticks / GAIN_ANGLE_TO_TICKS));
-
-        Serial.println("---------");
 
         // Appliquer les corrections proportionnelles
         float correction_distance = KP_DISTANCE * erreur_distance_ticks;
@@ -216,13 +292,12 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
 
         // Envoyer les commandes aux moteurs
         this->set_speed(commande_moteur_d, commande_moteur_g);
-
         this->m_time_asserv = millis();
     }
 }
 
 /*
-Asservissement style rcva - fonction test
+Asservissement en consigne de distance et d'angle en même temps, pour faire du mouvement curviligne
 */
 void Pami::asserv(float consigne_distance_mm, float consigne_angle_degre)
 {
@@ -391,19 +466,6 @@ void Pami::tourner_asservi(int etape_d_appel, float consigne_angle)
 }
 
 /*
-Fonctions de déplacement basiques (sans asservissement, juste pour tester les fonctions de base et régler les gains K_NAIF et K_ANGLE_NAIF
-*/
-void Pami::go_to(float distance_x, float distance_y, int speed)
-{
-    this->avancer(distance_x, speed);
-    delay(200);
-    this->tourner(90, speed);
-    delay(200);
-    this->avancer(distance_y, speed);
-    delay(200);
-}
-
-/*
 Avance d'une distance en attendant un certain temps sans aucun asservissement
 Ce temps est corrigé par K_NAIF pour avoir la bonne distance
 K_NAIF dépend du robot, a vous de le changer au début
@@ -470,16 +532,6 @@ void Pami::tourner(float angle_degres, float speed)
 }
 
 /*
-Arrête les moteurs de manière linéaire au lieu d'un échelon
-Est bloquante
-*/
-void Pami::stop()
-{
-    moteur_d->stop();
-    moteur_g->stop();
-}
-
-/*
 Allume les deux moteurs à une vitesse en (entre 0 et 255)
 $ TO DO : Faire un trapèze
 */
@@ -487,6 +539,16 @@ void Pami::set_speed(int speed_d, int speed_g)
 {
     moteur_d->set_speed(speed_d);
     moteur_g->set_speed(speed_g);
+}
+
+/*
+Arrête les moteurs de manière linéaire au lieu d'un échelon
+Est bloquante
+*/
+void Pami::stop()
+{
+    moteur_d->stop();
+    moteur_g->stop();
 }
 
 /*
@@ -500,6 +562,21 @@ void Pami::set_initial_position()
     this->pos_y = J_POSITION_1_DEPART_Y;
     // A modifier si angle de départ différent de 0
     this->pos_angle = 0;
+}
+
+/*
+Met à jour la position absolue de la PAMI sur le terrain.
+Utilise les ticks des encodeurs et la cinématique différentielle
+*/
+void Pami::update_position()
+{
+    // A faire : utiliser les ticks des encodeurs pour calculer la position absolue de la PAMI sur le terrain
+    // En utilisant la cinématique différentielle et en intégrant les mouvements au cours du temps
+    // On peut aussi utiliser les données du capteur IR pour corriger la position si un obstacle est détecté
+    //$ Trouver la formule pour calculer la position (x, y, theta) à partir des ticks des encodeurs
+    // pami.pos_x = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
+    // pami.pos_y = encodeur_g->mesure() / GAIN_MM_TO_TICKS;
+    // pami.pos_angle = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
 }
 
 /*
@@ -534,25 +611,11 @@ Faire attention car les valeurs des encodeurs sont reset après chaque action ->
 */
 void Pami::print_encodeur()
 {
-    if (millis() - m_time_log > 250)
-    {
-        float ticks_g = encodeur_g->mesure();
-        float ticks_d = encodeur_d->mesure();
+    float ticks_g = encodeur_g->mesure();
+    float ticks_d = encodeur_d->mesure();
 
-        Serial.print("Encodeur gauche : " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
-        Serial.println(" | Encodeur droit : " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
-    }
-}
-
-void Pami::update_position()
-{
-    // A faire : utiliser les ticks des encodeurs pour calculer la position absolue de la PAMI sur le terrain
-    // En utilisant la cinématique différentielle et en intégrant les mouvements au cours du temps
-    // On peut aussi utiliser les données du capteur IR pour corriger la position si un obstacle est détecté
-    //$ Trouver la formule pour calculer la position (x, y, theta) à partir des ticks des encodeurs
-    // pami.pos_x = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
-    // pami.pos_y = encodeur_g->mesure() / GAIN_MM_TO_TICKS;
-    // pami.pos_angle = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
+    Serial.print("Encodeur gauche : " + String(ticks_g / GAIN_MM_TO_TICKS) + " mm");
+    Serial.println(" | Encodeur droit : " + String(ticks_d / GAIN_MM_TO_TICKS) + " mm");
 }
 
 /*
@@ -584,14 +647,8 @@ Affiche des logs sur la pami
 */
 void Pami::print_log()
 {
-    if (m_time_log + 500 < millis()) // Log toutes les secondes
-    {
-        Serial.println("--- Time since match started : " + String((millis() - m_time_match) / 1000) + " s ---");
-        Serial.println("Etape des fonctions non bloquantes : " + String(etape_globale));
-        Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
-        this->print_infos_interrupteur();
-        this->print_encodeur();
-
-        m_time_log = millis();
-    }
+    Serial.println("--- Time since match started : " + String((millis() - m_time_match) / 1000) + " s ---");
+    Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
+    this->print_infos_interrupteur();
+    this->print_encodeur();
 }

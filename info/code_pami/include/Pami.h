@@ -45,7 +45,8 @@ public:
 
     Pami(Moteur *p_moteur_d, Moteur *p_moteur_g, Encodeur *p_encodeur_d, Encodeur *p_encodeur_g, Serv *p_servo, Irsensor *p_ir_sensor = nullptr, Ultrason *p_ultrason = nullptr);
 
-    // $ Fonctions de test pour chaque élement (à faire)
+    // Fonctions de test pour chaque élément
+    // Modes: 1=Interrupteurs, 2=CapteurIR, 3=Servo, 4=Moteurs&Encodeurs, 5=MouvementComplet, 6=Homologation, 7=GainsAsserv, 8=GainsNaifs
     void test(int mode);
 
     // Fonctions non bloquantes qui nécessite un numéro pour être appelée dans l'ordre
@@ -59,7 +60,6 @@ public:
     // Avancer basiquement sans asserv
     void avancer(float distance, int speed = SPEED);
     void tourner(float angle_degres, float speed = SPEED);
-    void go_to(float distance_x, float distance_y, int speed = SPEED);
 
     // $ Allume (TODO) et éteint les moteurs avec un trapèze i.e une rampe (à faire)
     void set_speed(int speed_d, int speed_g);

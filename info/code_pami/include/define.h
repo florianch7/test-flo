@@ -86,9 +86,11 @@ CONFIG DES PAMI
 /*
 Paramètres globaux
 */
-#define END_TIME 99000     // Temps global de la pami en ms (99s)
+#define END_TIME 20000     // Temps global de la pami en ms (99s)
 #define START_TIME 5000    // Les pamis commencent dans les 15 dernières secondes.
 #define DELAY_TIME 200     // Temps de delay pour les fonctions non bloquantes
+#define LOG_TIME 1000      // Temps entre chaque log en ms
+#define BLINK_TIME 1000    // Temps clignotement (ms).
 #define SPEED 255          // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
 #define DISTANCE_MIN 80    // Distance minimale pour éviter un obstacle en mm
 #define ERREUR_DISTANCE 10 // Incertitude position, mm

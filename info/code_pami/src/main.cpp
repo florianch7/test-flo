@@ -13,21 +13,10 @@ Moteur moteur_g = Moteur(EN_L, IN1_L, IN2_L, INV_MOT_L);
 Encodeur encodeur_d = Encodeur(CLK_R, DT_R, INV_ENC_R);
 Encodeur encodeur_g = Encodeur(CLK_L, DT_L, INV_ENC_L);
 
-// La pami en elle même
-Pami pami = Pami(&moteur_d, &moteur_g, &encodeur_d, &encodeur_g, &servo, &ir_sensor);
-
-// Compteur de la variable globale d'ordre d'appel de la file
 int etape_globale = 0;
 
-// Marche pas sans le callback - lui donner son propre temps de référence
-void delay_non_bloquant(int etape_d_appel, unsigned long oldtime, long delay = 10 * DELAY_TIME)
-{
-    if ((millis() - oldtime > delay) && (etape_globale == etape_d_appel))
-    {
-        Serial.println("Etape globale : " + String(etape_globale));
-        etape_globale++; // suivant
-    }
-};
+// La pami en elle même
+Pami pami = Pami(&moteur_d, &moteur_g, &encodeur_d, &encodeur_g, &servo, &ir_sensor);
 
 void setup()
 {
@@ -81,13 +70,15 @@ void setup()
         delay(10);
     }
 
-    // On remet a 0 les positions car la roue tourne pendant l'upload (why ?)
+    // On remet a 0 les positions car la roue tourne pendant l'upload
     encodeur_g.clear_count();
     encodeur_d.clear_count();
 
+    pami.test(8);
+
     // pami.set_initial_position();
 
-    // Temps du match & des logs
+    // Temps du match, des logs, et de l'asserv
     pami.m_time_log = millis();
     pami.m_time_match = millis();
     pami.m_time_asserv = millis();
@@ -105,8 +96,6 @@ int nb_mouvements = sizeof(mouvements) / sizeof(mouvements[0]);
 void loop()
 {
     // $ Tester pami.stop()
-    // Constamment actif
-    pami.asserv_list(mouvements, nb_mouvements);
 
     // Condition de fin de match
     if (millis() - pami.m_time_match >= END_TIME)
@@ -129,14 +118,10 @@ void loop()
 
     if ((millis() - pami.m_time_match) > START_TIME && (millis() - pami.m_time_match) < END_TIME)
     {
-        // consigne_distance = 100;
-
-        // pami.avancer_asservi(0, 100);
-        // pami.tourner_asservi(1, 180);
-        // pami.avancer_asservi(2, 100);
+        // pami.asserv_list(mouvements, nb_mouvements);
     }
 
-    if (millis() - pami.m_time_log >= 1000)
+    if (millis() - pami.m_time_log >= LOG_TIME)
     {
         pami.print_log();
         pami.m_time_log = millis();
