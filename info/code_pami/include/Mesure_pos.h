@@ -1,38 +1,47 @@
-#include <Encodeur.h>
-#include <define.h>
 #ifndef MESURE_POS_H
 #define MESURE_POS_H
+
+#include <Encodeur.h>
+#include <define.h>
 
 class Mesure_pos
 {
 private:
+    Encodeur *encodeur_g;
+    Encodeur *encodeur_d;
+
     float x_origin = 0.0;
     float y_origin = 0.0;
+    unsigned long m_last_update;
+    unsigned long m_log_update;
 
 public:
     // Nombre totaux de ticks des encodeurs
-    float ticks_abs_l;
-    float ticks_abs_r;
+    float ticks_g;
+    float ticks_d;
 
-    // Distance parcourue par chaque roue
-    float distance_abs_l;
-    float distance_abs_r;
+    // Distance parcourue par chaque roue (en mm)
+    float distance_g;
+    float distance_d;
 
-    // Vitesse absolue de chaque roue;
-    float vit_abs_l;
-    float vit_abs_r;
+    // Position absolue de la pami (en mm)
+    float pos_x;
+    float pos_y;
+    float pos_angle_deg; // en degrés
 
-    // Positions absolue de la pami
-    float pos_abs_x;
-    float pos_abs_y;
-    float pos_theta;
+    Mesure_pos(Encodeur *encodeur_g, Encodeur *encodeur_d);
 
-    // Vitesse absolue de la pami
-    float vit_abs_x;
-    float vit_abs_y;
-    float omega_abs;
+    // Setup de la position
+    void setup();
 
-    Mesure_pos(Encodeur *encodeur_l, Encodeur *encodeur_r);
+    // Update position based on current encoder readings
+    void update_position();
+
+    // Reset position to initial state
+    void reset_position(float x = 0.0, float y = 0.0, float theta = 0.0);
+
+    // Reset encoders without changing position
+    void reset_encoders();
 };
 
 #endif

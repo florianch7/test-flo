@@ -61,8 +61,7 @@ L'IR Sensor demande :
 /*
 SERVO
 */
-#define SERVPIN 18      // Broche du servo moteur sur D15
-#define BLINK_TIME 1000 // Temps clignotement (ms).
+#define SERVPIN 18 // Broche du servo moteur sur D15
 
 /*
 CONFIG DES PAMI
@@ -86,15 +85,19 @@ CONFIG DES PAMI
 /*
 Paramètres globaux
 */
-#define END_TIME 20000     // Temps global de la pami en ms (99s)
-#define START_TIME 5000    // Les pamis commencent dans les 15 dernières secondes.
-#define DELAY_TIME 200     // Temps de delay pour les fonctions non bloquantes
-#define LOG_TIME 1000      // Temps entre chaque log en ms
-#define BLINK_TIME 1000    // Temps clignotement (ms).
-#define SPEED 255          // Vitesse (en cm/s ?) (255 est la vitesse max des moteurs)
-#define DISTANCE_MIN 80    // Distance minimale pour éviter un obstacle en mm
-#define ERREUR_DISTANCE 10 // Incertitude position, mm
-#define ERREUR_ANGLE 1     // Incertitude position, degrés
+#define END_TIME 10000      // Temps global de la pami en ms (99s)
+#define START_TIME 3000     // Temps de démarrage des pamis (85s).
+#define DELAY_TIME 200      // Temps de delay pour les fonctions non bloquantes
+#define PERIODE_LOG 1000    // Période entre chaque log (ms)
+#define PERIODE_BLINK 1000  // Période de clignotement (ms)
+#define PERIODE_ASSERV 50   // Période d'asservissement (ms)
+#define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)
+
+#define LARGEUR_ROBOT_MM 150 // Largeur du robot en mm (distance entre les roues)
+#define SPEED 255            // Vitesse (255 est la vitesse max des moteurs pour pwm)
+#define DISTANCE_MIN 80      // Distance minimale pour éviter un obstacle en mm
+#define ERREUR_DISTANCE 1    // Incertitude position (mm)
+#define ERREUR_ANGLE 0.5     // Incertitude position (degrés)
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -107,22 +110,18 @@ Paramètres de l'asservissement
     A régler pour que le robot suive bien sa trajectoire
     Kp : gain proportionnel, plus il est grand plus le robot réagit vite à une erreur de position, mais peut causer des oscillations si trop élevé.
 */
+#define KP_DISTANCE 1.0 // Gain proportionnel pour la distance
+#define KP_ANGLE 1.0    // Gain proportionnel pour l'angle
 
-#define KP 1.0
-#define KP_DISTANCE 1.0
-#define KP_ANGLE 1.0
-#define INTERVAL_ASSERV 50.0    // en ms
-#define MARGE_ERREUR_TICKS 50.0 // Nombre de ticks autorisés
-
-// Gain qui dépendent des moteurs/encodeurs/pami - à régler correctement
+// Valeurs de conversion qui dépendent des moteurs/encodeurs/pami - à régler correctement
 #define GAIN_MM_TO_TICKS 9.9
 #define GAIN_ANGLE_TO_TICKS 23
 
 /*
-Define Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite))
+Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite)) & du n° de la pami (1, 2, 3, 4)
+$ TODO : Transformer en tableau
 Chaque pami à ses propres positions en cm
 */
-
 // PAMI 1
 #define J_POSITION_1_DEPART_X 35
 #define J_POSITION_1_DEPART_Y 50

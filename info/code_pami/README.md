@@ -1,8 +1,18 @@
 # 🤖 Code pour les PAMIs - by Jules & Flo & Antoine (2026)
 
-// Parler des TICKS_TO_CM - on utilise des ticks et convertir blabla
-// Rampes set_speed & stop
-// Il faut inclure les rampes accéleration & freinage dans avancer. Pas de fonctions autres. On peut les avoir aussi mais sinon set_speed & stop sont forcément bloquants. Ils ne sont appelés qu'une fois avant de passer à autre chose, on a pas le luxe de faire des boucles if et d'attendre ces phases dans avancer & tourner
+Pour l'instant on a :
+    - détection d'obstacle
+    - asservissement proportionnelle en permanence avec une liste possible
+    - une fonction diagnostique en gros
+    - des logs cohérentes
+    - des fonctions pour avancer simplement sans asservissement
+    - des fonctions avancer tout droit & tourner sur soi même qui nécessite un ordre d'appel
+
+A faire :
+    - PID, pas juste le P
+    - une mesure de position absolue fonctionnelle
+    - des rampes pour l'accélération & le freinage
+    - un tableau pour les positions de départ & d'arrivée car c'est immonde actuellement
 
 ## ⚠️ IMPORTANT : À LIRE AVANT D'ALLER FOUILLER LES FONCTIONS
 

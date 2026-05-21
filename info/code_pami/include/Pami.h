@@ -14,6 +14,7 @@
 #include <Ultrason.hpp>
 #include <Serv.h>
 #include <define.h>
+#include <Mesure_pos.h>
 
 class Pami
 {
@@ -25,6 +26,7 @@ public:
     Serv *servo;
     Ultrason *ultrason;
     Irsensor *ir_sensor;
+    Mesure_pos *mesure_pos;
 
     // Etat de la PAMI
     int tirette = 1;                                  // Etat par défaut de la tirette
@@ -37,13 +39,14 @@ public:
     long m_time_log;
     long m_time_match;
     long m_time_asserv;
+    long m_time_position;
 
     // Position absolue de la PAMI
     float pos_x;
     float pos_y;
     float pos_angle;
 
-    Pami(Moteur *p_moteur_d, Moteur *p_moteur_g, Encodeur *p_encodeur_d, Encodeur *p_encodeur_g, Serv *p_servo, Irsensor *p_ir_sensor = nullptr, Ultrason *p_ultrason = nullptr);
+    Pami(Moteur *p_moteur_d, Moteur *p_moteur_g, Encodeur *p_encodeur_d, Encodeur *p_encodeur_g, Mesure_pos *mesure_pos, Serv *p_servo, Irsensor *p_ir_sensor = nullptr, Ultrason *p_ultrason = nullptr);
 
     // Fonctions de test pour chaque élément
     // Modes: 1=Interrupteurs, 2=CapteurIR, 3=Servo, 4=Moteurs&Encodeurs, 5=MouvementComplet, 6=Homologation, 7=GainsAsserv, 8=GainsNaifs
@@ -65,7 +68,7 @@ public:
     void set_speed(int speed_d, int speed_g);
     void stop();
 
-    void blink_servo(int angle1, int angle2, long blink_time = BLINK_TIME);
+    void blink_servo(int angle1, int angle2, long time_blink = PERIODE_BLINK);
     double get_IR_distance();
 
     // Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain

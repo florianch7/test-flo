@@ -29,7 +29,7 @@ public:
       - Temps en ms
       - Angles en degrés
     */
-    void blink(int angle1, int angle2, long blink_time = BLINK_TIME);
+    void blink(int angle1, int angle2, long time_blink = PERIODE_BLINK);
     void setup();
     void loop();
 };

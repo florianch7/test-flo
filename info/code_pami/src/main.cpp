@@ -12,11 +12,12 @@ Moteur moteur_d = Moteur(EN_R, IN1_R, IN2_R, INV_MOT_R);
 Moteur moteur_g = Moteur(EN_L, IN1_L, IN2_L, INV_MOT_L);
 Encodeur encodeur_d = Encodeur(CLK_R, DT_R, INV_ENC_R);
 Encodeur encodeur_g = Encodeur(CLK_L, DT_L, INV_ENC_L);
+Mesure_pos mesure_pos = Mesure_pos(&encodeur_g, &encodeur_d);
 
 int etape_globale = 0;
 
 // La pami en elle même
-Pami pami = Pami(&moteur_d, &moteur_g, &encodeur_d, &encodeur_g, &servo, &ir_sensor);
+Pami pami = Pami(&moteur_d, &moteur_g, &encodeur_d, &encodeur_g, &mesure_pos, &servo, &ir_sensor);
 
 void setup()
 {
@@ -47,6 +48,10 @@ void setup()
     encodeur_g.setup();
     Serial.println("Setup Done : Encodeurs");
 
+    // Mesure position
+    mesure_pos.setup();
+    Serial.println("Setup Done : Mesure position");
+
     pinMode(PIN_TIRETTE, INPUT);
     pinMode(PIN_READEQUIPE, INPUT);
     pinMode(PIN_INT_PAMI_1, INPUT);
@@ -74,19 +79,18 @@ void setup()
     encodeur_g.clear_count();
     encodeur_d.clear_count();
 
-    pami.test(8);
-
     // pami.set_initial_position();
 
-    // Temps du match, des logs, et de l'asserv
+    // Temps du match, des logs, de l'asserv, de la position
     pami.m_time_log = millis();
     pami.m_time_match = millis();
     pami.m_time_asserv = millis();
+    pami.m_time_position = millis();
 }
 
 // Liste des mouvemnts à réaliser : {distance en mm, angle en degrés}
 float mouvements[][2] = {
-    {500, 90}, // 0 : avancer 100 mm
+    {150, 90}, // 0 : avancer 100 mm
     // {-30, 0}, // 1 : reculer 300 mm
     // {0, 90},  // 2 : tourner 90°
     // {150, 0}, // 3 : avancer 50 mm
@@ -95,7 +99,7 @@ int nb_mouvements = sizeof(mouvements) / sizeof(mouvements[0]);
 
 void loop()
 {
-    // $ Tester pami.stop()
+    pami.update_position();
 
     // Condition de fin de match
     if (millis() - pami.m_time_match >= END_TIME)
@@ -118,12 +122,12 @@ void loop()
 
     if ((millis() - pami.m_time_match) > START_TIME && (millis() - pami.m_time_match) < END_TIME)
     {
-        // pami.asserv_list(mouvements, nb_mouvements);
+        pami.asserv_list(mouvements, nb_mouvements);
     }
 
-    if (millis() - pami.m_time_log >= LOG_TIME)
+    if (millis() - pami.m_time_log >= PERIODE_LOG)
     {
-        pami.print_log();
+        // pami.print_log();
         pami.m_time_log = millis();
     }
 }

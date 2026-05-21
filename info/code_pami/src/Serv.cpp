@@ -2,43 +2,43 @@
 
 Serv::Serv(int pin)
 {
-  this->servo = Servo(); // Objet de la library Serv.h
-  this->pin = pin;       // Setup le PIN
+	this->servo = Servo(); // Objet de la library Serv.h
+	this->pin = pin;	   // Setup le PIN
 }
 
 /*
-  - Temps en ms
-  - Angles en degrés
+	- Temps en ms
+	- Angles en degrés
 */
-void Serv::blink(int angle1, int angle2, long blink_time)
+void Serv::blink(int angle1, int angle2, long time_blink)
 {
-  if (millis() - temps_servo > blink_time)
-  {
-    if (etat == angle2)
-    {
-      this->servo.write(angle1);
-      etat = angle1;
-      Serial.print("Servo moved to ");
-      Serial.println(angle1);
-    }
-    else
-    {
-      this->servo.write(angle2);
-      etat = angle2;
-      Serial.print("Servo moved to ");
-      Serial.println(angle2);
-    }
-    temps_servo = millis();
-  }
+	if (millis() - temps_servo > time_blink)
+	{
+		if (etat == angle2)
+		{
+			this->servo.write(angle1);
+			etat = angle1;
+			Serial.print("Servo moved to ");
+			Serial.println(angle1);
+		}
+		else
+		{
+			this->servo.write(angle2);
+			etat = angle2;
+			Serial.print("Servo moved to ");
+			Serial.println(angle2);
+		}
+		temps_servo = millis();
+	}
 }
 
 void Serv::setup()
 {
-  temps_servo = millis();
-  servo.attach(pin); // demandé par l'objet servo de la library
+	temps_servo = millis();
+	servo.attach(pin); // demandé par l'objet servo de la library
 
-  etat = 90; // Initialise l'etat du servo
-  servo.write(etat);
+	etat = 90; // Initialise l'etat du servo
+	servo.write(etat);
 }
 
 void Serv::loop()
