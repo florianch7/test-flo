@@ -12,7 +12,8 @@ Lien vers un sheets qui est plutôt clair : https://docs.google.com/spreadsheets
 
 > [!CAUTION]
 > **DANGER CRITIQUE POUR LE MATÉRIEL :**
-> **NE JAMAIS ENVOYER PLUS DE 3.3V A AUCUNE DES PINS GPIO de l'ESP32.** > Les broches ne sont pas tolérantes au 5V. Toute tension supérieure à 3.3V détruira instantanément la broche ou la puce entière. Utilisez un pont diviseur ou un Level Shifter pour les signaux autres.
+> **NE JAMAIS ENVOYER PLUS DE 3.3V A AUCUNE DES PINS GPIO de l'ESP32.**
+> Les broches ne sont pas tolérantes au 5V. Toute tension supérieure à 3.3V détruira instantanément la broche ou la puce entière. Utilisez un pont diviseur ou un Level Shifter pour les signaux autres.
 
 ### 🔌 Broches d'Alimentation et Contrôle Physique
 Ces broches ne sont pas programmables. Elles gèrent l'infrastructure électrique et logique de la carte.
@@ -83,7 +84,4 @@ Ces broches sont high (à 3.3V) pendant le boot & le setup. Connectez un composa
 </p>
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Code Pami & Ninja 2026
-
-Ajouter une branch avec le code du ninja ?
+---

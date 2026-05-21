@@ -74,4 +74,3 @@
 #define LOG_PERIOD 100 // ms
 
 #endif
-
