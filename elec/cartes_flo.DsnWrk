@@ -2,3 +2,9 @@
 Version=1.0
 [Project1]
 ProjectPath=carte_pami\carte_pami2026.PrjPcb
+[Project2]
+ProjectPath=carte_action_smt32\carte_action_stm32.PrjPcb
+[Project3]
+ProjectPath=carte_propu_stm32\carte_propu_stm32.PrjPcb
+[Project4]
+ProjectPath=carte_raspy_stm32\carte_raspy_stm32.PrjPcb

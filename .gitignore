@@ -5,14 +5,13 @@
 __Previews
 *.PrjPcbStructure
 *.Dat
-*.REP 
+*.REP
 *.TLT
 *.LOG
 *.log
 *.htm
 *.$$$
 *.zip
-
 
 #useless dirs
 Project\ Outputs
@@ -32,3 +31,7 @@ scripts/__pycache__/
 *.dwl
 *.dwl2
 
+#Info exclusion
+.pio/
+.vscode/
+.cache/

@@ -78,15 +78,19 @@ En effet, soit il est retourné (donc `newtime = oldtime`), soit `newtime = mill
 
 <!-- ### 🔍 Questions / Pistes de réflexion sur le code : -->
 
-<!-- #### ❓ *Je peux pas supprimer la boucle du début et remplacer oldtime par newtime dans les appels de fonctions ?* -->
+> ❓ *Je peux pas supprimer la boucle du début et remplacer oldtime par newtime dans les appels de fonctions ?*
 
-> `delay_non_bloquant` est un peu différent, il ne retourne pas de temps. En effet son rôle est de "bloquer" le temps mais uniquement celui de la file d'appel. Il a donc une étape d'appel comme les autres et, en théorie, pourrait retourner constamment `oldtime` le temps précédent ➡️ aucun intérêt donc ne retourne rien.
-> Il s'agit simplement d'une étape qui ne passe pas à l'étape suivante durant toute la durée du delay souhaité.
->
+`delay_non_bloquant` est un peu différent, il ne retourne pas de temps. En effet son rôle est de "bloquer" le temps mais uniquement celui de la file d'appel. Il s'agit simplement d'une étape qui ne passe pas à l'étape suivante durant toute la durée du delay souhaité. <br>
+Il a donc une étape d'appel comme les autres et, en théorie, pourrait retourner constamment `oldtime` le temps précédent -> aucun intérêt donc ne retourne rien.
+
+
 > 🔤 **Structure :** `delay_non_bloquant(n° d'appel, oldtime, temps de delay);` *// Delay de DELAY_TIME par défaut*
 
-<!-- #### ❓ *Elles pourraient prendre newtime & on supprime le newtime = oldtime au début de chaque boucle -> oldtime useless ?* -->
-> Si on met à jour `oldtime = newtime` pour l'appel d'un delay, la condition `(millis() - oldtime) > delay` n'est jamais atteinte car `oldtime = newtime` (mais `newtime` vaut toujours `oldtime` car les autres fonctions de la file ne sont pas a la bonne etape...)
+> ❓ *Elles pourraient prendre newtime & on supprime le newtime = oldtime au début de chaque boucle -> oldtime useless ?*
+
+Si on met à jour `oldtime = newtime` pour l'appel d'un delay, la condition `(millis() - oldtime) > delay` n'est jamais atteinte car `oldtime = newtime`
+
+> (mais `newtime` vaut toujours `oldtime` car les autres fonctions de la file ne sont pas a la bonne etape...)
 
 #### 🧪 À tester :
 * [ ] Tester d'enlever la boucle et voir si delay fonctionne encore.
