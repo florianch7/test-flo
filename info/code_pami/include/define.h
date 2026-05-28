@@ -113,6 +113,12 @@ Paramètres de l'asservissement
 #define KP_DISTANCE 1.0 // Gain proportionnel pour la distance
 #define KP_ANGLE 1.0    // Gain proportionnel pour l'angle
 
+#define KD_DISTANCE 0.1 // Gain dérivé pour la distance
+#define KD_ANGLE 0.1    // Gain dérivé pour l'angle
+
+#define KI_DISTANCE 0.01 // Gain intégral pour la distance
+#define KI_ANGLE 0.01    // Gain intégral pour l'angle
+
 // Valeurs de conversion qui dépendent des moteurs/encodeurs/pami - à régler correctement
 #define GAIN_MM_TO_TICKS 9.9
 #define GAIN_ANGLE_TO_TICKS 23

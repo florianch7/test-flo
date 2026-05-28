@@ -106,7 +106,7 @@ La fonction teste `if (etape_globale == mon_numero)` pour savoir si c'est son to
 void loop() {
     if ((millis() - pami.m_time_match) < END_TIME) {
         avancer_asservi(0, 150, 1000);  // Avancer 15 cm
-        tourner_asservi(1, 90, 1000);  // Ne sera éxecuté que lorsque etape_globale == 1 i.e lorsque avancer de 150 mm sera fini
+        tourner_asservi(1, 90, 1000);  // Ne sera exécuté que lorsque etape_globale == 1 i.e lorsque avancer de 150 mm sera fini
     }
 }
 ```

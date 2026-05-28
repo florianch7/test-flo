@@ -242,7 +242,11 @@ void Pami::test(int mode)
 }
 
 /*
-Asservissement style rcva - fonction test
+Permet d'éxecuter plusieurs consignes de manière séquentielle non bloquant
+Asservissement en consigne de distance et d'angle en même temps, pour faire du mouvement curviligne
+Si pas précisé dans le nom, c'est en ticks, sinon on met _cm ou _mm ou _degre
+$ C'est pas mieux de tout gérer en mm ? Non car ça permet de faire du asservissement en ticks -> Sinon les angles c'est bizarre à gérer en mm
+$ Vérifier le KD et l'asservissement dérivateur
 */
 void Pami::asserv_list(float mouvements[][2], int nb_mvt)
 {
@@ -255,21 +259,29 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
         float consigne_distance_mm = mouvements[num_current_mvt][0];
         float consigne_angle_degre = mouvements[num_current_mvt][1];
 
+        // On récupère la position actuelle des encodeurs en ticks
         int pos_encodeur_d = encodeur_d->mesure();
         int pos_encodeur_g = encodeur_g->mesure();
 
+        // Vitesse en ticks/s
+        float speed_d = (pos_encodeur_d - pos_ref_distance) / ((millis() - this->m_time_asserv) / 1000.0);
+        float speed_g = (pos_encodeur_g - pos_ref_distance) / ((millis() - this->m_time_asserv) / 1000.0);
+
         // Calculer la distance et l'angle du mouvement actuel en ticks
         // On repart de l'origin à chaque nouveau mouvement, donc on soustrait la position de référence qui est la position d'arrivée du précédent
-        float distance_actuelle_ticks = (pos_encodeur_d + pos_encodeur_g) / 2.0 - pos_ref_distance;
-        float angle_actuel_ticks = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
+        float distance = (pos_encodeur_d + pos_encodeur_g) / 2.0 - pos_ref_distance;
+        float angle = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
+        // Vitesse toujours relative donc pas de position de référence
+        float vitesse = (speed_d + speed_g) / 2.0;
+        float vitesse_angulaire = (speed_d - speed_g);
 
-        // Calculer les erreurs en ticks
-        float erreur_distance_ticks = GAIN_MM_TO_TICKS * consigne_distance_mm - distance_actuelle_ticks;
-        float erreur_angle_ticks_ticks = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle_actuel_ticks;
+        // Calculer les ecarts à la consigne en ticks
+        float ecart_distance = GAIN_MM_TO_TICKS * consigne_distance_mm - distance;
+        float ecart_angle = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle;
 
         // Appliquer les corrections proportionnelles
-        float correction_distance = KP_DISTANCE * erreur_distance_ticks;
-        float correction_angle = KP_ANGLE * erreur_angle_ticks_ticks;
+        float correction_distance = KP_DISTANCE * ecart_distance - KD_DISTANCE * vitesse;
+        float correction_angle = KP_ANGLE * ecart_angle - KD_ANGLE * vitesse_angulaire;
 
         // Convertir les corrections en commandes moteur
         int commande_moteur_d = (int)(correction_distance + correction_angle);
@@ -279,15 +291,16 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
         commande_moteur_d = constrain(commande_moteur_d, -255, 255);
         commande_moteur_g = constrain(commande_moteur_g, -255, 255);
 
-        if (abs(consigne_distance_mm - distance_actuelle_ticks / GAIN_MM_TO_TICKS) < ERREUR_DISTANCE && abs(consigne_angle_degre - angle_actuel_ticks / GAIN_ANGLE_TO_TICKS) < ERREUR_ANGLE)
+        // Vérifie si on a atteint la consigne
+        if (abs(consigne_distance_mm - distance / GAIN_MM_TO_TICKS) < ERREUR_DISTANCE && abs(consigne_angle_degre - angle / GAIN_ANGLE_TO_TICKS) < ERREUR_ANGLE)
         {
             if (num_current_mvt < nb_mvt - 1)
             {
-                num_current_mvt++;
-
                 // On récupère la position actuelle pour la prendre comme origine au prochain tour
-                pos_ref_distance = distance_actuelle_ticks;
-                pos_ref_angle = angle_actuel_ticks;
+                pos_ref_distance = distance;
+                pos_ref_angle = angle;
+
+                num_current_mvt++;
             }
         }
 
@@ -308,16 +321,16 @@ void Pami::asserv(float consigne_distance_mm, float consigne_angle_degre)
         int pos_encodeur_g = encodeur_g->mesure();
 
         // Calculer la distance et l'angle actuels
-        float distance_actuelle_ticks = (pos_encodeur_d + pos_encodeur_g) / 2.0;
-        float angle_actuel_ticks = (pos_encodeur_d - pos_encodeur_g);
+        float distance = (pos_encodeur_d + pos_encodeur_g) / 2.0;
+        float angle = (pos_encodeur_d - pos_encodeur_g);
 
         // Calculer les erreurs
-        float erreur_distance_ticks = consigne_distance_mm * GAIN_MM_TO_TICKS - distance_actuelle_ticks;
-        float erreur_angle_ticks = consigne_angle_degre * GAIN_ANGLE_TO_TICKS - angle_actuel_ticks;
+        float ecart_distance = consigne_distance_mm * GAIN_MM_TO_TICKS - distance;
+        float ecart_angle = consigne_angle_degre * GAIN_ANGLE_TO_TICKS - angle;
 
         // Appliquer les corrections proportionnelles
-        float correction_distance = KP_DISTANCE * erreur_distance_ticks;
-        float correction_angle = KP_ANGLE * erreur_angle_ticks;
+        float correction_distance = KP_DISTANCE * ecart_distance;
+        float correction_angle = KP_ANGLE * ecart_angle;
 
         // Convertir les corrections en commandes moteur
         int commande_moteur_d = (int)(correction_distance + correction_angle);
@@ -544,11 +557,10 @@ void Pami::set_speed(int speed_d, int speed_g)
 
 /*
 Arrête les moteurs de manière linéaire au lieu d'un échelon
-Est bloquante
+$ On voit le delai entre chaque moteur
 */
 void Pami::stop()
 {
-    // On voit le delai entre chaque moteur
     moteur_d->stop();
     moteur_g->stop();
 }
@@ -556,10 +568,10 @@ void Pami::stop()
 /*
 Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
 Dépend du numéro de la PAMI & de l'équipe
+$ Faire du if/else pour equipe & n° pami
 */
 void Pami::set_initial_position()
 {
-    // $ Faire du if/else pour equipe & n° pami
     // A modifier si angle de départ différent de 0
     this->pos_x = 0;
     this->pos_y = 0;
@@ -569,6 +581,7 @@ void Pami::set_initial_position()
 /*
 Met à jour la position absolue de la PAMI sur le terrain.
 Utilise les ticks des encodeurs et la cinématique différentielle
+$ Marche ?
 */
 void Pami::update_position()
 {

@@ -54,7 +54,7 @@ public:
 
     // Fonctions non bloquantes qui nécessite un numéro pour être appelée dans l'ordre
     // Sinon elles s'executeraient toutes en même temps
-    // $ Faire PID & asserv rcva (à faire)
+    // $ Faire PID
     void asserv_list(float mouvements[][2], int nb_mvt);
     void asserv(float consigne_distance_mm, float consigne_angle_degre);
     void avancer_asservi(int etape_d_appel, float consigne_mm);
