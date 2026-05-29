@@ -56,21 +56,23 @@ void setup()
     pinMode(PIN_READEQUIPE, INPUT);
     pinMode(PIN_INT_PAMI_1, INPUT);
     pinMode(PIN_INT_PAMI_2, INPUT);
-    pami.print_infos_interrupteur();
     Serial.println("Setup Done : Tirette & Equipe & PAMI");
 
     Serial.println("\n---------- Setup over ----------\n\n");
     digitalWrite(PIN_LED, LOW);
     delay(500);
 
-    unsigned long last_diag = 0;
+    unsigned long last_read = 0;
+
+    // false permet d'afficher les infos actuelles
+    pami.print_changes_in_interrupteur(false);
 
     while (digitalRead(PIN_TIRETTE) == 1)
     {
-        if (millis() - last_diag > 500)
+        if (millis() - last_read > 500)
         {
-            pami.print_infos_interrupteur();
-            last_diag = millis();
+            pami.print_changes_in_interrupteur();
+            last_read = millis();
         }
         delay(10);
     }
@@ -79,7 +81,7 @@ void setup()
     encodeur_g.clear_count();
     encodeur_d.clear_count();
 
-    // pami.set_initial_position();
+    pami.set_initial_position();
 
     // Temps du match, des logs, de l'asserv, de la position
     pami.m_time_log = millis();
@@ -90,53 +92,55 @@ void setup()
 
 // Liste des mouvemnts à réaliser : {distance en mm, angle en degrés}
 float mouvements[][2] = {
-    {150, 90}, // 0 : avancer 100 mm
-    // {-30, 0}, // 1 : reculer 300 mm
-    // {0, 90},  // 2 : tourner 90°
+    {300, 0}, // 0 : avancer 300 mm
+    // {0, 45},  // 1 : tourner 90°
+    // {-30, 0}, // 2 : reculer 300 mm
     // {150, 0}, // 3 : avancer 50 mm
 };
 int nb_mouvements = sizeof(mouvements) / sizeof(mouvements[0]);
 
 void loop()
 {
-    pami.update_position();
+    pami.update_mesure_position();
 
     // Condition de fin de match
     if (millis() - pami.m_time_match >= END_TIME)
     {
-        pami.stop();
         Serial.println("Temps de match écoulé - Arrêt du robot.");
+        pami.linear_stop();
         while (true)
         {
             pami.blink_servo(0, 90);
         }
     }
 
-    // float dist = pami.get_IR_distance();
-    // if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
-    // {
-    //     Serial.println("Obstacle détecté ! Arrêt du robot.");
-    //     pami.stop();
-    //     return;
-    // }
+    float dist = pami.get_IR_distance();
+    if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de DISTANCE_MIN cm
+    {
+        Serial.println("Obstacle détecté ! Arrêt du robot.");
+        pami.linear_stop();
+        return;
+    }
 
     if ((millis() - pami.m_time_match) > START_TIME && (millis() - pami.m_time_match) < END_TIME)
     {
+        // Si on veut une suite de mouvements asservis curvilignes
         pami.asserv_list(mouvements, nb_mouvements);
 
-        if (pami.equipe_color == "JAUNE")
-        {
-            // Récupère la config départ/arrivée de la pami n° num_pami (entre 0 & 3) et avance du delta
-            pami.avancer(pami_pos[pami.num_pami].j.delta().x);
-            pami.tourner(90);
-            pami.avancer(pami_pos[pami.num_pami].j.delta().y);
-        }
-        else
-        {
-            pami.avancer(pami_pos[pami.num_pami].b.delta().x);
-            pami.tourner(-90);
-            pami.avancer(pami_pos[pami.num_pami].b.delta().y);
-        }
+        // Si on veut aller d'un point A à un point B en faisant (avancer - tourner - avancer)
+        // if (pami.equipe_color == "JAUNE")
+        // {
+        //     // Récupère la config départ/arrivée de la pami n° num_pami (entre 0 & 3) et avance du delta
+        //     pami.avancer(pami_pos[pami.num_pami].j.delta().x);
+        //     pami.tourner(90);
+        //     pami.avancer(pami_pos[pami.num_pami].j.delta().y);
+        // }
+        // else
+        // {
+        //     pami.avancer(pami_pos[pami.num_pami].b.delta().x);
+        //     pami.tourner(-90);
+        //     pami.avancer(pami_pos[pami.num_pami].b.delta().y);
+        // }
     }
 
     if (millis() - pami.m_time_log >= PERIODE_LOG)

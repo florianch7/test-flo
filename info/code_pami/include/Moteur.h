@@ -31,9 +31,15 @@ public:
      */
     void set_speed(int vitesse);
     /**
-     * @brief Pas utilisé, arrête le moteur
+     * @brief Arrête le moteur de manière linéaire
      */
-    void stop();
+    void linear_stop();
+
+    /**
+     * @brief Retourne la dernière vitesse envoyée au moteur
+     * @return La vitesse du moteur
+     */
+    long get_speed();
 
     /**
      * @brief constructeur

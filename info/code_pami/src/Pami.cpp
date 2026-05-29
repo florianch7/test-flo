@@ -36,7 +36,7 @@ void Pami::test(int mode)
         Serial.println("Test Interrupteurs... Modifiez leurs etats ! (Boucle infinie)");
         while (true)
         {
-            this->print_infos_interrupteur();
+            this->print_changes_in_interrupteur();
             delay(500);
         }
         break;
@@ -74,20 +74,20 @@ void Pami::test(int mode)
             encodeur_d->clear_count();
             encodeur_g->clear_count();
             moteur_d->set_speed(200);
-            moteur_g->stop();
+            moteur_g->linear_stop();
 
-            moteur_d->stop();
+            moteur_d->linear_stop();
             Serial.print("  Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
             delay(1000);
 
             Serial.println("\n>>> TEST ROUE GAUCHE (Vitesse 200, 2 sec)");
             encodeur_d->clear_count();
             encodeur_g->clear_count();
-            moteur_d->stop();
+            moteur_d->linear_stop();
             moteur_g->set_speed(200);
 
             Serial.println("  Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
-            moteur_g->stop();
+            moteur_g->linear_stop();
             delay(1000);
 
             Serial.println("\n>>> TEST DEUX ROUES ENSEMBLE (Vitesse 200, 2 sec)");
@@ -97,8 +97,8 @@ void Pami::test(int mode)
             moteur_g->set_speed(200);
 
             Serial.println("Enc D: " + String(encodeur_d->mesure()) + " ticks | Enc G: " + String(encodeur_g->mesure()) + " ticks");
-            moteur_d->stop();
-            moteur_g->stop();
+            moteur_d->linear_stop();
+            moteur_g->linear_stop();
 
             Serial.println("\n--- Fin d'une serie de tests. Restart dans 3 sec ---");
             delay(3000);
@@ -124,7 +124,7 @@ void Pami::test(int mode)
             if (dist < DISTANCE_MIN && dist > 0.5)
             {
                 Serial.println(">>> OBSTACLE DETECTE ! Arret du robot");
-                this->set_speed(0, 0);
+                this->linear_stop();
             }
             else
             {
@@ -139,7 +139,7 @@ void Pami::test(int mode)
             delay(50);
         }
 
-        this->set_speed(0, 0);
+        this->linear_stop();
         Serial.println("Homologation terminee.");
         break;
     }
@@ -158,7 +158,7 @@ void Pami::test(int mode)
 
         this->set_speed(SPEED, SPEED);
         delay(2000);
-        this->set_speed(0, 0);
+        this->linear_stop();
 
         float ticks_d = encodeur_d->mesure();
         float ticks_g = encodeur_g->mesure();
@@ -179,7 +179,7 @@ void Pami::test(int mode)
 
         this->set_speed(SPEED, -SPEED);
         delay(2000);
-        this->set_speed(0, 0);
+        this->linear_stop();
 
         float ticks_d = encodeur_d->mesure();
         float ticks_g = encodeur_g->mesure();
@@ -201,7 +201,7 @@ void Pami::test(int mode)
 
         this->set_speed(SPEED, SPEED);
         delay(expected_time); // On attend le temps théorique pour faire le mouvement
-        this->stop();
+        this->linear_stop();
 
         float dist_d = encodeur_d->mesure() / GAIN_MM_TO_TICKS;
         float dist_g = encodeur_g->mesure() / GAIN_MM_TO_TICKS;
@@ -224,7 +224,7 @@ void Pami::test(int mode)
 
         this->set_speed(SPEED, -SPEED);
         delay(expected_time); // On attend le temps théorique pour faire le mouvement
-        this->stop();
+        this->linear_stop();
 
         float angle = encodeur_d->mesure() / GAIN_ANGLE_TO_TICKS;
         Serial.print("\nAngle reel : " + String(angle) + " deg");
@@ -403,8 +403,8 @@ void Pami::avancer_asservi(int etape_d_appel, float consigne_mm)
         if (abs(consigne_mm - ticks_g / GAIN_MM_TO_TICKS) < ERREUR_DISTANCE && abs(consigne_mm - ticks_d / GAIN_MM_TO_TICKS) < ERREUR_DISTANCE)
         {
             // ON RENTRE & on nettoie les encodeurs !!
-            this->set_speed(0, 0);
-            // this->stop();
+            // this->linear_stop();
+            this->linear_stop();
             encodeur_g->clear_count();
             encodeur_d->clear_count();
             etape_globale++;
@@ -412,15 +412,6 @@ void Pami::avancer_asservi(int etape_d_appel, float consigne_mm)
 
         this->m_time_asserv = millis();
     }
-    /* But du gain proportionnel : faire une correction proportionnelle à l'erreur.
-        En gros :
-        erreur = ticksG - ticksD
-        correction = Kp * erreur
-
-        Puis on ajuste le pwm :
-        pwmG = pwmBase - correction
-        pwmD = pwmBase + correction
-    */
 }
 
 /*
@@ -484,8 +475,8 @@ void Pami::tourner_asservi(int etape_d_appel, float consigne_angle)
         if (abs(consigne_angle + ticks_g / GAIN_ANGLE_TO_TICKS) < ERREUR_ANGLE && abs(consigne_angle - ticks_d / GAIN_ANGLE_TO_TICKS) < ERREUR_ANGLE)
         {
             // ON RENTRE !!
-            // this->set_speed(0, 0);
-            this->stop();
+            // this->linear_stop();
+            this->linear_stop();
             encodeur_g->clear_count();
             encodeur_d->clear_count();
             etape_globale++;
@@ -518,14 +509,14 @@ void Pami::avancer(float distance, int speed)
         if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
         {
             Serial.println("Obstacle détecté ! Arrêt du robot.");
-            this->stop();
+            this->linear_stop();
         }
         else
         {
             this->set_speed(speed, speed);
         }
     }
-    this->stop();
+    this->linear_stop();
 }
 
 /*
@@ -551,14 +542,14 @@ void Pami::tourner(float angle_degres, float speed)
         if (dist < DISTANCE_MIN && dist > 0.5) // Si un obstacle est détecté à moins de 20 cm
         {
             Serial.println("Obstacle détecté ! Arrêt du robot.");
-            this->stop();
+            this->linear_stop();
         }
         else
         {
             this->set_speed(speed, -speed);
         }
     }
-    this->stop();
+    this->linear_stop();
 }
 
 /*
@@ -572,25 +563,79 @@ void Pami::set_speed(int speed_d, int speed_g)
 }
 
 /*
-Arrête les moteurs de manière linéaire au lieu d'un échelon
-$ On voit le delai entre chaque moteur
+Arrête les moteurs de manière instantanée (échelon)
 */
 void Pami::stop()
 {
-    moteur_d->stop();
-    moteur_g->stop();
+    this->set_speed(0, 0);
+}
+
+/*
+Arrête les moteurs de manière linéaire bloquante
+*/
+void Pami::linear_stop()
+{
+    int base_speed_d = moteur_d->get_speed();
+    int base_speed_g = moteur_g->get_speed();
+
+    for (int i = 10; i > 0; i--)
+    {
+        int current_speed_d = base_speed_d * (i / 10.0);
+        int current_speed_g = base_speed_g * (i / 10.0);
+        this->set_speed(current_speed_d, current_speed_g);
+
+        delay(20);
+    }
+
+    // Sécurité : on s'assure que les moteurs sont bien à 0 à la fin de la boucle
+    this->set_speed(0, 0);
+}
+
+/*
+Arrête les moteurs de manière linéaire au lieu d'un échelon de manière non bloquante
+*/
+void Pami::non_blocking_linear_stop(bool init)
+{
+    static int step = 0;
+    static unsigned long chrono = 0;
+    static bool freinage_en_cours = false;
+
+    // Si on déclenche l'arrêt (et qu'on ne freine pas déjà)
+    if (init && !freinage_en_cours)
+    {
+        step = 10;
+        freinage_en_cours = true;
+    }
+
+    // Si on est en train de freiner, on exécute une étape toutes les 25ms
+    if (freinage_en_cours && (millis() - chrono >= 25))
+    {
+        chrono = millis();
+
+        // Baisse la vitesse proportionnellement
+        int current_speed_d = moteur_d->get_speed() * (step / 10.0);
+        int current_speed_g = moteur_g->get_speed() * (step / 10.0);
+        this->set_speed(current_speed_d, current_speed_g);
+
+        step--;
+
+        if (step < 0)
+        {
+            this->set_speed(0, 0);
+            freinage_en_cours = false;
+        }
+    }
 }
 
 /*
 Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
 Dépend du numéro de la PAMI & de l'équipe
-$ Faire du if/else pour equipe & n° pami
 */
 void Pami::set_initial_position()
 {
-    // A modifier si angle de départ différent de 0
-    this->pos_x = 0;
-    this->pos_y = 0;
+    Motion config = equipe_color.equalsIgnoreCase("JAUNE") ? pami_pos[num_pami].j : pami_pos[num_pami].b;
+    this->pos_x = config.start.x;
+    this->pos_y = config.start.y;
     this->pos_angle = 0;
 }
 
@@ -599,9 +644,9 @@ Met à jour la position absolue de la PAMI sur le terrain.
 Utilise les ticks des encodeurs et la cinématique différentielle
 $ Marche ?
 */
-void Pami::update_position()
+void Pami::update_mesure_position()
 {
-    mesure_pos->update_position();
+    mesure_pos->update_mesure_position();
     this->pos_x = mesure_pos->pos_x;
     this->pos_y = mesure_pos->pos_y;
     this->pos_angle = mesure_pos->pos_angle_deg;
@@ -648,25 +693,27 @@ void Pami::print_encodeur()
 
 /*
 Affiche les modifications d'interrupteur
+only_changes = false -> affiche l'état de chaque interrupteur
 */
-void Pami::print_infos_interrupteur()
+void Pami::print_changes_in_interrupteur(bool only_changes)
 {
-    if (digitalRead(PIN_TIRETTE) != tirette)
+    if (digitalRead(PIN_TIRETTE) != tirette || !only_changes)
     {
         tirette = digitalRead(PIN_TIRETTE);
-        Serial.print(tirette == 1 ? "Tirette en place \n" : "Tirette enlevée \n");
+        Serial.println(tirette == 1 ? "Tirette en place" : "Tirette enlevée");
     }
-    if (digitalRead(PIN_READEQUIPE) != equipe)
+    if (digitalRead(PIN_READEQUIPE) != equipe || !only_changes)
     {
         equipe = digitalRead(PIN_READEQUIPE);
-        Serial.print(equipe == 1 ? "Equipe : JAUNE \n" : "Equipe : BLEUE \n");
+        equipe_color = equipe == 1 ? "JAUNE" : "BLEUE";
+        Serial.println("Equipe : " + equipe_color);
     }
-    if (digitalRead(PIN_INT_PAMI_1) != int_pami_1 || digitalRead(PIN_INT_PAMI_2) != int_pami_2)
+    if (digitalRead(PIN_INT_PAMI_1) != int_pami_1 || digitalRead(PIN_INT_PAMI_2) != int_pami_2 || !only_changes)
     {
         int_pami_1 = digitalRead(PIN_INT_PAMI_1);
         int_pami_2 = digitalRead(PIN_INT_PAMI_2);
         num_pami = (int_pami_1 * 2) + int_pami_2;
-        Serial.print("PAMI n°" + String(num_pami) + "\n");
+        Serial.println("PAMI n°" + String(num_pami));
     }
 }
 
@@ -676,8 +723,9 @@ Affiche des logs sur la pami
 void Pami::print_log()
 {
     Serial.println("--- Time since match started : " + String((millis() - m_time_match) / 1000) + " s ---");
+    this->print_changes_in_interrupteur(false);
     Serial.println("Distance Ir: " + String(this->get_IR_distance()) + " mm");
-    this->print_infos_interrupteur();
+    Serial.println("Position x: " + String(pos_x / 10.0) + " cm | Position y: " + String(pos_y / 10.0) + " cm | Angle: " + String(pos_angle) + " °\n");
     this->print_encodeur();
-    Serial.print("Position x: " + String(pos_x / 10.0) + " cm | Position y: " + String(pos_y / 10.0) + " cm | Angle: " + String(pos_angle) + " °\n");
+    Serial.println("--------------------------------------------");
 }

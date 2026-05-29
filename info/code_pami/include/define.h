@@ -1,6 +1,6 @@
 /**
  * @file define.h
- * @brief fichier de configuration des pins pour la pami )
+ * @brief fichier de configuration des pins pour la pami et des gains et des constantes utiles
  */
 
 // TODO REGLER LES PINS & LES GAINS AVANT LA COUPE AVEC L'ELEC
@@ -85,7 +85,7 @@ CONFIG DES PAMI
 /*
 Paramètres globaux
 */
-#define END_TIME 10000      // Temps global de la pami en ms (99s)
+#define END_TIME 99000      // Temps global de la pami en ms (99s)
 #define START_TIME 3000     // Temps de démarrage des pamis (85s).
 #define DELAY_TIME 200      // Temps de delay pour les fonctions non bloquantes
 #define PERIODE_LOG 1000    // Période entre chaque log (ms)
@@ -97,7 +97,7 @@ Paramètres globaux
 #define SPEED 255            // Vitesse (255 est la vitesse max des moteurs pour pwm)
 #define DISTANCE_MIN 80      // Distance minimale pour éviter un obstacle en mm
 #define ERREUR_DISTANCE 1    // Incertitude position (mm)
-#define ERREUR_ANGLE 0.5     // Incertitude position (degrés)
+#define ERREUR_ANGLE 3       // Incertitude position (degrés)
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -110,14 +110,11 @@ Paramètres de l'asservissement
     A régler pour que le robot suive bien sa trajectoire
     Kp : gain proportionnel, plus il est grand plus le robot réagit vite à une erreur de position, mais peut causer des oscillations si trop élevé.
 */
-#define KP_DISTANCE 1.0 // Gain proportionnel pour la distance
-#define KP_ANGLE 1.0    // Gain proportionnel pour l'angle
+#define KP_DISTANCE 2.4 // Gain proportionnel pour la distance
+#define KP_ANGLE 2.4    // Gain proportionnel pour l'angle
 
-#define KD_DISTANCE 0.1 // Gain dérivé pour la distance
-#define KD_ANGLE 0.1    // Gain dérivé pour l'angle
-
-#define KI_DISTANCE 0.01 // Gain intégral pour la distance
-#define KI_ANGLE 0.01    // Gain intégral pour l'angle
+#define KD_DISTANCE 0.15 // Gain dérivé pour la distance
+#define KD_ANGLE 0.15    // Gain dérivé pour l'angle
 
 // Valeurs de conversion qui dépendent des moteurs/encodeurs/pami - à régler correctement
 #define GAIN_MM_TO_TICKS 9.9
@@ -125,15 +122,13 @@ Paramètres de l'asservissement
 
 /*
 Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite)) & du n° de la pami (1, 2, 3, 4)
-$ TODO : Transformer en tableau
-Chaque pami à ses propres positions en cm
+Chaque pami à ses propres positions de départ et d'arrivée en cm
 */
-
 // Structure pour stocker les positions et mouvements
 struct Point
 {
-    int x;
-    int y;
+    float x;
+    float y;
 };
 
 struct Motion
@@ -165,9 +160,9 @@ On accède avec pami[i].j.start.x    pami[i].b.final.y    pami[i].j.delta().x   
 */
 
 inline const Robot pami_pos[4] = {
-    {.j = {{35, 50}, {200, 70}}, .b = {{35, 50}, {200, 70}}},
-    {.j = {{20, 50}, {120, 90}}, .b = {{20, 50}, {120, 90}}},
-    {.j = {{5, 50}, {120, 10}}, .b = {{5, 50}, {120, 10}}},
-    {.j = {{0, 0}, {0, 0}}, .b = {{0, 0}, {0, 0}}}};
+    {.j = {{10, 80}, {200, 70}}, .b = {{10, 80}, {200, 70}}},
+    {.j = {{20, 90}, {120, 90}}, .b = {{20, 90}, {120, 90}}},
+    {.j = {{30, 70}, {120, 10}}, .b = {{30, 70}, {120, 10}}},
+    {.j = {{40, 60}, {0, 0}}, .b = {{40, 60}, {0, 0}}}};
 
 #endif

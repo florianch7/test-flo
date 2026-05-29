@@ -33,7 +33,7 @@ public:
     void setup();
 
     // Update position based on current encoder readings
-    void update_position();
+    void update_mesure_position();
 
     // Reset position to initial state
     void reset_position(float x = 0.0, float y = 0.0, float theta = 0.0);

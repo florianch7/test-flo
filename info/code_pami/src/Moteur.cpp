@@ -60,9 +60,14 @@ void Moteur::set_speed(int vitesse)
     analogWrite(m_EN, m_vitesse); // envoie la command de vitesse
 }
 
+long Moteur::get_speed()
+{
+    return m_vitesse;
+}
+
 // Eteint les moteurs de manière linéaire pour éviter les à-coups
 // Est bloquante, à utiliser pour arrêter le robot à la fin du match ou en cas d'obstacle détecté
-void Moteur::stop()
+void Moteur::linear_stop()
 {
     int base_speed = abs(m_vitesse);
 

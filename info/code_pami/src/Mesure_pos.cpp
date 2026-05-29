@@ -28,7 +28,7 @@ void Mesure_pos::setup()
     m_log_update = millis();
 }
 
-void Mesure_pos::update_position()
+void Mesure_pos::update_mesure_position()
 {
     if (millis() - m_last_update < PERIODE_POSITION)
         return;
@@ -54,10 +54,10 @@ void Mesure_pos::update_position()
 
     if (millis() - m_log_update >= 250)
     {
-        Serial.println("Ticks - Gauche : " + String(ticks_g) + " | Droite : " + String(ticks_d));
-        Serial.println("Distance - Gauche : " + String(distance_g) + " mm | Droite : " + String(distance_d) + " mm");
-        Serial.println("Angle absolu : " + String(pos_angle_deg) + " deg");
-        Serial.println("Position absolue - X : " + String(pos_x) + " mm | Y : " + String(pos_y) + " mm");
+        // Serial.println("Ticks - Gauche : " + String(ticks_g) + " | Droite : " + String(ticks_d));
+        // Serial.println("Distance - Gauche : " + String(distance_g) + " mm | Droite : " + String(distance_d) + " mm");
+        // Serial.println("Angle absolu : " + String(pos_angle_deg) + " deg");
+        // Serial.println("Position absolue - X : " + String(pos_x) + " mm | Y : " + String(pos_y) + " mm");
         m_log_update = millis();
     }
 

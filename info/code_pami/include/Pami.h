@@ -65,8 +65,10 @@ public:
     void avancer(float distance, int speed = SPEED);
     void tourner(float angle_degres, float speed = SPEED);
 
-    // $ Allume (TODO) et éteint les moteurs avec un trapèze i.e une rampe (à faire)
+    // Fonctions de contrôle des moteurs
     void set_speed(int speed_d, int speed_g);
+    void non_blocking_linear_stop(bool init = false);
+    void linear_stop();
     void stop();
 
     void blink_servo(int angle1, int angle2, long time_blink = PERIODE_BLINK);
@@ -74,7 +76,7 @@ public:
 
     // Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
     void set_initial_position();
-    void update_position();
+    void update_mesure_position();
 
     // $ Ecran (à faire)
     void afficher_ecran(String ligne1);
@@ -85,7 +87,7 @@ public:
     // Fonctions de log
     void print_log();
     void print_encodeur();
-    void print_infos_interrupteur();
+    void print_changes_in_interrupteur(bool only_changes = true);
 };
 
 #endif
