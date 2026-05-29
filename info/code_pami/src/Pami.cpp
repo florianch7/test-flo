@@ -253,6 +253,8 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
     static int num_current_mvt = 0;
     static int pos_ref_distance = 0;
     static int pos_ref_angle = 0;
+    static int prev_pos_encodeur_d = 0;
+    static int prev_pos_encodeur_g = 0;
 
     if (millis() - this->m_time_asserv >= PERIODE_ASSERV)
     {
@@ -264,23 +266,26 @@ void Pami::asserv_list(float mouvements[][2], int nb_mvt)
         int pos_encodeur_g = encodeur_g->mesure();
 
         // Vitesse en ticks/s
-        float speed_d = (pos_encodeur_d - pos_ref_distance) / ((millis() - this->m_time_asserv) / 1000.0);
-        float speed_g = (pos_encodeur_g - pos_ref_distance) / ((millis() - this->m_time_asserv) / 1000.0);
+        float speed_d = (pos_encodeur_d - prev_pos_encodeur_d) / ((millis() - this->m_time_asserv) / 1000.0);
+        float speed_g = (pos_encodeur_g - prev_pos_encodeur_g) / ((millis() - this->m_time_asserv) / 1000.0);
+
+        // Sauvegarde les positions pour le prochain calcul de vitesse
+        prev_pos_encodeur_d = pos_encodeur_d;
+        prev_pos_encodeur_g = pos_encodeur_g;
 
         // Calculer la distance et l'angle du mouvement actuel en ticks
         // On repart de l'origin à chaque nouveau mouvement, donc on soustrait la position de référence qui est la position d'arrivée du précédent
+
+        // Calcul des écarts de distance et de la correction
         float distance = (pos_encodeur_d + pos_encodeur_g) / 2.0 - pos_ref_distance;
-        float angle = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
-        // Vitesse toujours relative donc pas de position de référence
         float vitesse = (speed_d + speed_g) / 2.0;
-        float vitesse_angulaire = (speed_d - speed_g);
-
-        // Calculer les ecarts à la consigne en ticks
         float ecart_distance = GAIN_MM_TO_TICKS * consigne_distance_mm - distance;
-        float ecart_angle = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle;
-
-        // Appliquer les corrections proportionnelles
         float correction_distance = KP_DISTANCE * ecart_distance - KD_DISTANCE * vitesse;
+
+        // Calcul des ecarts angulaires et de la correction
+        float angle = (pos_encodeur_d - pos_encodeur_g) - pos_ref_angle;
+        float vitesse_angulaire = (speed_d - speed_g);
+        float ecart_angle = GAIN_ANGLE_TO_TICKS * consigne_angle_degre - angle;
         float correction_angle = KP_ANGLE * ecart_angle - KD_ANGLE * vitesse_angulaire;
 
         // Convertir les corrections en commandes moteur
@@ -315,22 +320,33 @@ Asservissement en consigne de distance et d'angle en même temps, pour faire du 
 */
 void Pami::asserv(float consigne_distance_mm, float consigne_angle_degre)
 {
+    static int prev_pos_encodeur_d = 0;
+    static int prev_pos_encodeur_g = 0;
+
     if (millis() - this->m_time_asserv >= PERIODE_ASSERV)
     {
         int pos_encodeur_d = encodeur_d->mesure();
         int pos_encodeur_g = encodeur_g->mesure();
 
-        // Calculer la distance et l'angle actuels
+        // Vitesse en ticks/s
+        float speed_d = (pos_encodeur_d - prev_pos_encodeur_d) / ((millis() - this->m_time_asserv) / 1000.0);
+        float speed_g = (pos_encodeur_g - prev_pos_encodeur_g) / ((millis() - this->m_time_asserv) / 1000.0);
+
+        // Sauvegarde les positions pour le prochain calcul de vitesse
+        prev_pos_encodeur_d = pos_encodeur_d;
+        prev_pos_encodeur_g = pos_encodeur_g;
+
+        // Calcul ecart en distance et la correction
         float distance = (pos_encodeur_d + pos_encodeur_g) / 2.0;
-        float angle = (pos_encodeur_d - pos_encodeur_g);
-
-        // Calculer les erreurs
+        float vitesse = (speed_d + speed_g) / 2.0;
         float ecart_distance = consigne_distance_mm * GAIN_MM_TO_TICKS - distance;
-        float ecart_angle = consigne_angle_degre * GAIN_ANGLE_TO_TICKS - angle;
+        float correction_distance = KP_DISTANCE * ecart_distance - KD_DISTANCE * vitesse;
 
-        // Appliquer les corrections proportionnelles
-        float correction_distance = KP_DISTANCE * ecart_distance;
-        float correction_angle = KP_ANGLE * ecart_angle;
+        // Calcul ecart en angle et la correction
+        float angle = (pos_encodeur_d - pos_encodeur_g);
+        float vitesse_angulaire = (speed_d - speed_g);
+        float ecart_angle = consigne_angle_degre * GAIN_ANGLE_TO_TICKS - angle;
+        float correction_angle = KP_ANGLE * ecart_angle - KD_ANGLE * vitesse_angulaire;
 
         // Convertir les corrections en commandes moteur
         int commande_moteur_d = (int)(correction_distance + correction_angle);
@@ -649,7 +665,7 @@ void Pami::print_infos_interrupteur()
     {
         int_pami_1 = digitalRead(PIN_INT_PAMI_1);
         int_pami_2 = digitalRead(PIN_INT_PAMI_2);
-        num_pami = (int_pami_1 * 2) + int_pami_2 + 1;
+        num_pami = (int_pami_1 * 2) + int_pami_2;
         Serial.print("PAMI n°" + String(num_pami) + "\n");
     }
 }

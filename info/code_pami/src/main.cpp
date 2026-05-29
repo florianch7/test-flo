@@ -123,6 +123,20 @@ void loop()
     if ((millis() - pami.m_time_match) > START_TIME && (millis() - pami.m_time_match) < END_TIME)
     {
         pami.asserv_list(mouvements, nb_mouvements);
+
+        if (pami.equipe_color == "JAUNE")
+        {
+            // Récupère la config départ/arrivée de la pami n° num_pami (entre 0 & 3) et avance du delta
+            pami.avancer(pami_pos[pami.num_pami].j.delta().x);
+            pami.tourner(90);
+            pami.avancer(pami_pos[pami.num_pami].j.delta().y);
+        }
+        else
+        {
+            pami.avancer(pami_pos[pami.num_pami].b.delta().x);
+            pami.tourner(-90);
+            pami.avancer(pami_pos[pami.num_pami].b.delta().y);
+        }
     }
 
     if (millis() - pami.m_time_log >= PERIODE_LOG)

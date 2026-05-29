@@ -29,11 +29,12 @@ public:
     Mesure_pos *mesure_pos;
 
     // Etat de la PAMI
-    int tirette = 1;                                  // Etat par défaut de la tirette
-    int equipe = 0;                                   // Equipe par défaut (1 = gauche = jaune)
-    int int_pami_1 = 0;                               // Etat interrupteur 1
-    int int_pami_2 = 0;                               // Etat interrupteur 2
-    int num_pami = (int_pami_1 * 2) + int_pami_2 + 1; // Numéro de la pami
+    int tirette = 1;                                       // Etat par défaut de la tirette
+    int equipe = 0;                                        // Equipe par défaut (1 = gauche = jaune)
+    String equipe_color = equipe == 1 ? "JAUNE" : "BLEUE"; // Couleur de l'équipe
+    int int_pami_1 = 0;                                    // Etat interrupteur 1
+    int int_pami_2 = 0;                                    // Etat interrupteur 2
+    int num_pami = (int_pami_1 * 2) + int_pami_2;          // Numéro de la pami (entre 0 & 3)
 
     // Temps pour les fréquences d'éxecution
     long m_time_log;

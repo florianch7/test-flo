@@ -128,74 +128,46 @@ Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite)) & du n
 $ TODO : Transformer en tableau
 Chaque pami à ses propres positions en cm
 */
-// PAMI 1
-#define J_POSITION_1_DEPART_X 35
-#define J_POSITION_1_DEPART_Y 50
 
-#define J_POSITION_1_FINAL_X 200
-#define J_POSITION_1_FINAL_Y 70
+// Structure pour stocker les positions et mouvements
+struct Point
+{
+    int x;
+    int y;
+};
 
-#define J_DELTA_1_X abs(J_POSITION_1_FINAL_X - J_POSITION_1_DEPART_X)
-#define J_DELTA_1_Y abs(J_POSITION_1_FINAL_Y - J_POSITION_1_DEPART_Y)
+struct Motion
+{
+    Point start;
+    Point final;
 
-#define B_POSITION_1_DEPART_X 35
-#define B_POSITION_1_DEPART_Y 50
+    // Return the absolute différence between the start and final positions in x and y
+    Point delta() const
+    {
+        return {(final.x > start.x) ? (final.x - start.x) : (start.x - final.x),
+                (final.y > start.y) ? (final.y - start.y) : (start.y - final.y)};
+    }
+};
 
-#define B_POSITION_1_FINAL_X 200
-#define B_POSITION_1_FINAL_Y 70
+struct Robot
+{
+    Motion j;
+    Motion b;
+};
 
-#define B_DELTA_1_X abs(B_POSITION_1_FINAL_X - B_POSITION_1_DEPART_X)
-#define B_DELTA_1_Y abs(B_POSITION_1_FINAL_Y - B_POSITION_1_DEPART_Y)
+/*
+Tableau de config
+4 Pami
+2 équipes (J - JAUNE, B - BLUE)
+Pour chaque équipe, la position de départ (x, y) et la position d'arrivée (x, y)
+{.j = {{x_depart, y_depart}, {x_final, y_final}}, b = {{x_depart, y_depart}, {x_final, y_final}}}
+On accède avec pami[i].j.start.x    pami[i].b.final.y    pami[i].j.delta().x    etc...
+*/
 
-// PAMI 2
-#define J_POSITION_2_DEPART_X 20
-#define J_POSITION_2_DEPART_Y 50
-
-#define J_POSITION_2_FINAL_X 120
-#define J_POSITION_2_FINAL_Y 90
-
-#define J_DELTA_2_X abs(J_POSITION_2_FINAL_X - J_POSITION_2_DEPART_X)
-#define J_DELTA_2_Y abs(J_POSITION_2_FINAL_Y - J_POSITION_2_DEPART_Y)
-
-#define B_POSITION_2_DEPART_X 20
-#define B_POSITION_2_DEPART_Y 50
-
-#define B_POSITION_2_FINAL_X 120
-#define B_POSITION_2_FINAL_Y 90
-
-#define B_DELTA_2_X abs(B_POSITION_2_FINAL_X - B_POSITION_2_DEPART_X)
-#define B_DELTA_2_Y abs(B_POSITION_2_FINAL_Y - B_POSITION_2_DEPART_Y)
-
-// PAMI 3
-#define J_POSITION_3_DEPART_X 5
-#define J_POSITION_3_DEPART_Y 50
-
-#define J_POSITION_3_FINAL_X 120
-#define J_POSITION_3_FINAL_Y 10
-
-#define J_DELTA_3_X abs(J_POSITION_3_FINAL_X - J_POSITION_3_DEPART_X)
-#define J_DELTA_3_Y abs(J_POSITION_3_FINAL_Y - J_POSITION_3_DEPART_Y)
-
-#define B_POSITION_3_DEPART_X 5
-#define B_POSITION_3_DEPART_Y 50
-
-#define B_POSITION_3_FINAL_X 120
-#define B_POSITION_3_FINAL_Y 10
-
-#define B_DELTA_3_X abs(B_POSITION_3_FINAL_X - B_POSITION_3_DEPART_X)
-#define B_DELTA_3_Y abs(B_POSITION_3_FINAL_Y - B_POSITION_3_DEPART_Y)
-
-// PAMI 4
-#define J_POSITION_4_DEPART_X 0
-#define J_POSITION_4_DEPART_Y 0
-
-#define J_POSITION_4_FINAL_X 0
-#define J_POSITION_4_FINAL_Y 0
-
-#define B_POSITION_4_DEPART_X 0
-#define B_POSITION_4_DEPART_Y 0
-
-#define B_POSITION_4_FINAL_X 0
-#define B_POSITION_4_FINAL_Y 0
+inline const Robot pami_pos[4] = {
+    {.j = {{35, 50}, {200, 70}}, .b = {{35, 50}, {200, 70}}},
+    {.j = {{20, 50}, {120, 90}}, .b = {{20, 50}, {120, 90}}},
+    {.j = {{5, 50}, {120, 10}}, .b = {{5, 50}, {120, 10}}},
+    {.j = {{0, 0}, {0, 0}}, .b = {{0, 0}, {0, 0}}}};
 
 #endif
