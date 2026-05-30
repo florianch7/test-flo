@@ -554,10 +554,21 @@ void Pami::tourner(float angle_degres, float speed)
 
 /*
 Allume les deux moteurs à une vitesse en (entre 0 et 255)
-$ TO DO : Faire un trapèze
+$ Make it non blocking
 */
 void Pami::set_speed(int speed_d, int speed_g)
 {
+    for (int i = 1; i <= 10; i++)
+    {
+        int current_speed_d = speed_d * (i / 10.0);
+        int current_speed_g = speed_g * (i / 10.0);
+        moteur_d->set_speed(current_speed_d);
+        moteur_g->set_speed(current_speed_g);
+
+        delay(20);
+    }
+
+    // Sécurité : on s'assure que les moteurs sont bien à la vitesse souhaitée à la fin de la boucle
     moteur_d->set_speed(speed_d);
     moteur_g->set_speed(speed_g);
 }
