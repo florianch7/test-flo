@@ -1,7 +1,7 @@
 [ProjectGroup]
 Version=1.0
 [Project1]
-ProjectPath=carte_pami\carte_pami2026.PrjPcb
+ProjectPath=carte_pami\carte_pami26.PrjPcb
 [Project2]
 ProjectPath=carte_action_smt32\carte_action_stm32.PrjPcb
 [Project3]

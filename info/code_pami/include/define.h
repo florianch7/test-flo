@@ -33,7 +33,7 @@ ENCODEURS
 
 /*
 Inversion du sens des moteurs & encodeurs si ils sont montés à l'envers dans la pami
-A tester avec print_vitesse ou print_encodeur pour que les vitesses soient positives et que le robot avance
+A tester avec print_vitesse ou print_encodeur pour que les vitesses soient positives et que le Start_pos avance
     Mais modifier le sens moteur change le sens encodeur
     Mais modifier le sens encodeur ne change pas le sens moteur
 # Mention abominable
@@ -93,11 +93,11 @@ Paramètres globaux
 #define PERIODE_ASSERV 50   // Période d'asservissement (ms)
 #define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)
 
-#define LARGEUR_ROBOT_MM 150 // Largeur du robot en mm (distance entre les roues)
-#define SPEED 255            // Vitesse (255 est la vitesse max des moteurs pour pwm)
-#define DISTANCE_MIN 80      // Distance minimale pour éviter un obstacle en mm
-#define ERREUR_DISTANCE 1    // Incertitude position (mm)
-#define ERREUR_ANGLE 3       // Incertitude position (degrés)
+#define LARGEUR_Start_pos_MM 150 // Largeur du Start_pos en mm (distance entre les roues)
+#define SPEED 255                // Vitesse (255 est la vitesse max des moteurs pour pwm)
+#define DISTANCE_MIN 80          // Distance minimale pour éviter un obstacle en mm
+#define ERREUR_DISTANCE 1        // Incertitude position (mm)
+#define ERREUR_ANGLE 3           // Incertitude position (degrés)
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -107,8 +107,8 @@ Gains naifs pour réellement avancer de 10cm avec un delay
 
 /*
 Paramètres de l'asservissement
-    A régler pour que le robot suive bien sa trajectoire
-    Kp : gain proportionnel, plus il est grand plus le robot réagit vite à une erreur de position, mais peut causer des oscillations si trop élevé.
+    A régler pour que le Start_pos suive bien sa trajectoire
+    Kp : gain proportionnel, plus il est grand plus le Start_pos réagit vite à une erreur de position, mais peut causer des oscillations si trop élevé.
 */
 #define KP_DISTANCE 2.4 // Gain proportionnel pour la distance
 #define KP_ANGLE 2.4    // Gain proportionnel pour l'angle
@@ -131,38 +131,25 @@ struct Point
     float y;
 };
 
-struct Motion
+struct StartPosition
 {
-    Point start;
-    Point final;
-
-    // Return the absolute différence between the start and final positions in x and y
-    Point delta() const
-    {
-        return {(final.x > start.x) ? (final.x - start.x) : (start.x - final.x),
-                (final.y > start.y) ? (final.y - start.y) : (start.y - final.y)};
-    }
-};
-
-struct Robot
-{
-    Motion j;
-    Motion b;
+    Point j;
+    Point b;
 };
 
 /*
 Tableau de config
 4 Pami
 2 équipes (J - JAUNE, B - BLUE)
-Pour chaque équipe, la position de départ (x, y) et la position d'arrivée (x, y)
-{.j = {{x_depart, y_depart}, {x_final, y_final}}, b = {{x_depart, y_depart}, {x_final, y_final}}}
-On accède avec pami[i].j.start.x    pami[i].b.final.y    pami[i].j.delta().x    etc...
+Pour chaque équipe, la position de départ (x, y)
+{.j = {x_depart, y_depart}, b = {x_depart, y_depart}}
+On accède avec : pami[i].j.x    pami[i].b.y
 */
 
-inline const Robot pami_pos[4] = {
-    {.j = {{10, 80}, {200, 70}}, .b = {{10, 80}, {200, 70}}},
-    {.j = {{20, 90}, {120, 90}}, .b = {{20, 90}, {120, 90}}},
-    {.j = {{30, 70}, {120, 10}}, .b = {{30, 70}, {120, 10}}},
-    {.j = {{40, 60}, {0, 0}}, .b = {{40, 60}, {0, 0}}}};
+inline const StartPosition pami_start_pos[4] = {
+    {.j = {10, 80}, .b = {10, 80}},
+    {.j = {20, 90}, .b = {20, 90}},
+    {.j = {30, 70}, .b = {30, 70}},
+    {.j = {40, 60}, .b = {40, 60}}};
 
 #endif

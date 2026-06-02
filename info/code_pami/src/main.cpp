@@ -130,16 +130,15 @@ void loop()
         // Si on veut aller d'un point A à un point B en faisant (avancer - tourner - avancer)
         // if (pami.equipe_color == "JAUNE")
         // {
-        //     // Récupère la config départ/arrivée de la pami n° num_pami (entre 0 & 3) et avance du delta
-        //     pami.avancer(pami_pos[pami.num_pami].j.delta().x);
+        //     pami.avancer(600);
         //     pami.tourner(90);
-        //     pami.avancer(pami_pos[pami.num_pami].j.delta().y);
+        //     pami.avancer(200);
         // }
         // else
         // {
-        //     pami.avancer(pami_pos[pami.num_pami].b.delta().x);
+        //     pami.avancer(800);
         //     pami.tourner(-90);
-        //     pami.avancer(pami_pos[pami.num_pami].b.delta().y);
+        //     pami.avancer(300);
         // }
     }
 

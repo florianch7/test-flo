@@ -644,9 +644,9 @@ Dépend du numéro de la PAMI & de l'équipe
 */
 void Pami::set_initial_position()
 {
-    Motion config = equipe_color.equalsIgnoreCase("JAUNE") ? pami_pos[num_pami].j : pami_pos[num_pami].b;
-    this->pos_x = config.start.x;
-    this->pos_y = config.start.y;
+    Point config = equipe_color.equalsIgnoreCase("JAUNE") ? pami_start_pos[num_pami].j : pami_start_pos[num_pami].b;
+    this->pos_x = config.x;
+    this->pos_y = config.y;
     this->pos_angle = 0;
 }
 
