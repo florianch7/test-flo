@@ -296,13 +296,23 @@ pami.asserv(distance_mm, angle_deg);            // Une seule consigne
 pami.asserv_list(tableau_2d, nb_mouvements);    // Liste de consignes
 ```
 
-#### Moteurs & servo
+#### Moteurs
 ```cpp
 pami.set_speed(vitesse_droite, vitesse_gauche);     // Allume le moteur à une certaine vitesse(0-255) de manière linéaire
 pami.stop();                                        // ⚠️ Arrêt instantané
 pami.linear_stop();                                 // Arrêt linéaire bloquant (rampe de freinage)
 pami.non_blocking_linear_stop(init);                // Arrêt linéaire non bloquant
-pami.blink_servo(theta1, theta2, temps_ms);         // Bouger le servo entre deux angles tous les temps_ms
+```
+
+#### Ecran & servo
+```cpp
+screen.print()      // Affiche le texte sur la ligne actuelle
+screen.println()    // Affiche le texte et passe à celle d'après
+screen.nextline()   // Passe à la ligne suivante
+screen.setline()    // Choisit la ligne d'écriture
+screen.clear()      // Vide l'écran
+
+pami.blink_servo(theta1, theta2, temps_ms);     // Bouger le servo entre deux angles tous les temps_ms
 ```
 
 #### Position absolue
@@ -314,6 +324,7 @@ float x = pami.pos_x;            // Position x en mm
 float y = pami.pos_y;            // Position y en mm
 float angle = pami.pos_angle;    // Angle en degrés
 ```
+
 
 ---
 
