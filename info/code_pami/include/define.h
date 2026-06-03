@@ -99,11 +99,11 @@ Paramètres globaux
 #define PERIODE_ASSERV 50   // Période d'asservissement (ms)
 #define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)
 
-#define LARGEUR_Start_pos_MM 150 // Largeur du Start_pos en mm (distance entre les roues)
-#define SPEED 255                // Vitesse (255 est la vitesse max des moteurs pour pwm)
-#define DISTANCE_MIN 80          // Distance minimale pour éviter un obstacle en mm
-#define ERREUR_DISTANCE 1        // Incertitude position (mm)
-#define ERREUR_ANGLE 3           // Incertitude position (degrés)
+#define LARGEUR_ROBOT_MM 150 // Largeur du Start_pos en mm (distance entre les roues)
+#define SPEED 255            // Vitesse (255 est la vitesse max des moteurs pour pwm)
+#define DISTANCE_MIN 80      // Distance minimale pour éviter un obstacle en mm
+#define ERREUR_DISTANCE 1    // Incertitude position (mm)
+#define ERREUR_ANGLE 3       // Incertitude position (degrés)
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
