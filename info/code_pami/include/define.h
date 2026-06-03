@@ -54,14 +54,17 @@ L'IR Sensor demande :
 #define ULTRASON_ECHO 0    // Ultrason echo pin
 #define ULTRASON_TRIGGER 0 // Ultrason trigger pin
 
-#define IR_SCL_PIN 22 // Ligne SCL de l'I2C du capteur ToF
-#define IR_SDA_PIN 21 // Ligne SDA de l'I2C du capteur ToF
-#define IR_LPN_PIN 0  // Ligne LPn du capteur ToF (pour le réveiller) - Branché au 5V direct c'est plus simple
+#define IR_LPN_PIN 0 // Ligne LPn du capteur ToF (pour le réveiller) - Branché au 5V direct c'est plus simple
 
 /*
 SERVO
 */
 #define SERVPIN 18 // Broche du servo moteur sur D15
+
+/*
+Ecran
+*/
+#define SCREEN_I2C_ADDR 0x27 // Adresse I2C de l'écran LCD (à vérifier selon votre écran)
 
 /*
 CONFIG DES PAMI
@@ -73,6 +76,8 @@ CONFIG DES PAMI
 #define PIN_LED 2         // PIN LED pour le setup
 #define PIN_READEQUIPE 19 // PIN pour lire l'interrupteur qui defini l'équipe
 #define PIN_TIRETTE 23    // PIN de la tirette pour lancer le match
+#define SCL_PIN 22        // Ligne SCL de l'I2C
+#define SDA_PIN 21        // Ligne SDA de l'I2C
 
 // Low & Low : Première
 // Low & High : Deuxième
@@ -89,6 +94,7 @@ Paramètres globaux
 #define START_TIME 3000     // Temps de démarrage des pamis (85s).
 #define DELAY_TIME 200      // Temps de delay pour les fonctions non bloquantes
 #define PERIODE_LOG 1000    // Période entre chaque log (ms)
+#define PERIODE_SCREEN 500  // Période de rafraîchissement de l'écran (ms)
 #define PERIODE_BLINK 1000  // Période de clignotement (ms)
 #define PERIODE_ASSERV 50   // Période d'asservissement (ms)
 #define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)

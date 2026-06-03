@@ -2,14 +2,14 @@
 
 ## 📑 Sommaire
 - [État du projet](#état-du-projet)
-- [🚀 Pour commencer](#-pour-commencer)
-- [⚖️ Architecture & concepts clés](#-architecture-du-code)
-    - [⏱️ Fonctions non bloquantes](#️-code-non-bloquant-séquentiel)
-    - [🧩 Déplacements](#-déplacements--trois-types-de-fonctions)
-    - [⚙️ Asservissement](#️-asservissement-pd)
-- [📍 Mesure de position](#-mesure-de-position)
-- [📚 Listes des fonctions utiles](#-référence-des-fonctions)
-- [⚙️ Configuration `define.h`](#️-paramètres-existants-dans-defineh)
+- 🚀 [Pour commencer](#-pour-commencer)
+- ⚖️ [Architecture & concepts clés](#-architecture-du-code)
+    - ⏱️ [Fonctions non bloquantes](#️-code-non-bloquant-séquentiel)
+    - 🧩[Déplacements](#-déplacements--trois-types-de-fonctions)
+    - ⚙️ [Asservissement](#️-asservissement-pd)
+- 📍 [Mesure de position](#-mesure-de-position)
+- 📚 [Listes des fonctions utiles](#-référence-des-fonctions)
+- ⚙️ [Configuration](#️-paramètres-existants-dans-defineh) avec `define.h`
 
 ---
 
@@ -17,13 +17,13 @@
 
 ### ✅ Fonctionnalités implémentées
 - 🚨 Détection d'obstacles (IR ou ultrason)
+- 🏎️ Déplacement simple sans asservissement (naïf)
 - ⚙️ Asservissement **PD** (proportionnel + dérivateur) en continu avec support de listes
 - ⚙️ Asservissement **PD** pour mouvements séquentiels (avancer/tourner)
+- 📍 Mesure de position absolue (cinématique différentielle)
+- 🎯 Arrêt linéaire bloquant et non bloquant (rampe de freinage)
 - 🔧 Fonction diagnostique (9 modes de test)
 - 📊 Logs structurées
-- 🏎️ Déplacement simple sans asservissement (naïf)
-- 🎯 Arrêt linéaire bloquant et non bloquant (rampe de freinage)
-- 📍 Mesure de position absolue (cinématique différentielle)
 
 ### 📋 À faire
 - 📍 Vérifier la calibration de (x, y, θ) avec une règle
@@ -38,7 +38,7 @@
 
 Les PAMIs sont des petits robots qui deviennent actifs **au bout de 85s** sur les 100s que durent un match. <br>
 Leur unique rôle est de **rejoindre un zone précise de la carte** qui change chaque année. <br>
-Ils doivent avoir un **système d'évitement d'obstacle** (on utilise de l'infrarouge) et **avoir un actionneur actif** à la fin du match.
+Ils doivent avoir un **système d'évitement d'obstacle** (on utilise de l'infrarouge) et **avoir un actionneur actif** à la fin du match (un servomoteur à rendre fun).
 
 
 ### Configuration obligatoire dans `define.h`
@@ -102,7 +102,7 @@ if ((millis() - pami.m_time_match) > START_TIME) {
 ```
 
 Chaque appel à `loop()` teste les conditions et met à jour l'état : pas d'attente, pas de blocage.
-C'est très subtile donc ne modifiez pas sans être 100% sur de vous !
+C'est très subtile car les fonctions dans un if sont toutes constamment appelées. Ils faut être sur qu'elles s'éxecutent dans l'ordre et ne se mélange pas. Donc ne modifiez pas sans être 100% sur de vous !
 
 ---
 
@@ -111,15 +111,14 @@ C'est très subtile donc ne modifiez pas sans être 100% sur de vous !
 #### 1️⃣ Fonctions **naïves** (pas d'asservissement)
 Vous spécifiez la distance/angle → la PAMI bouge sans correction pendant le temps estimé.
 
+⚠️ **Attention :** Ces fonctions sont **bloquantes** et utilisent `delay()`. À utiliser uniquement pour du test. Le temps de mouvement est calculé par :
+- `temps = K_NAIF * (distance / SPEED) * 1000 ms`
+
 **Exemples :**
 ```cpp
 pami.avancer(150);      // Avancer 150 cm - bloquant !
 pami.tourner(90);       // Tourner 90° sens trigonométrique - bloquant !
 ```
-
-⚠️ **Attention :** Ces fonctions sont **bloquantes** et utilisent `delay()`. À utiliser uniquement pour du test. Le temps de mouvement est calculé par :
-- `temps = K_NAIF * (distance / SPEED) * 1000 ms`
-
 
 #### 2️⃣ Fonctions **séquentielles** avec numéro d'appel
 Asservissement **P uniquement** et  **actif uniquement pendant le mouvement**, arrêt automatique quand l'objectif est atteint.
@@ -245,6 +244,8 @@ commande_moteur = correction_distance ± correction_angle
 ## 📍 Mesure de position
 
 Le robot possède deux encodeurs afin de connaitre sa position
+
+- A finir
 
 ---
 

@@ -21,9 +21,11 @@ private:
     int etat;
     int pin;
     long temps_servo;
+    uint8_t servo_I2C_addr;
 
 public:
-    Serv(int pin);
+    // $ A définir la I2C address
+    Serv(int pin, uint8_t servo_I2C_addr = 0x27);
 
     /* Fait bouger le servomoteur entre deux angles
       - Temps en ms

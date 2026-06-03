@@ -21,7 +21,7 @@ public:
     int imageWidth = 0;                   // Used to pretty print output
 
     // Constructor
-    Irsensor(int SDA_PIN, int SCL_PIN, int LPN_PIN = 0);
+    Irsensor(int m_sda_pin, int m_scl_pin, int m_lpn_pin = 0);
 
     int ir_minimum_distance = 1000; // Distance absolue que l'on récupère du capteur
     int vision[8];                  // liste des 8 distances moyennes des capteurs de gauche à droite

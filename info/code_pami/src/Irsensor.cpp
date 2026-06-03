@@ -5,11 +5,11 @@
 #include <SparkFun_VL53L5CX_Library.h> //http://librarymanager/All#SparkFun_VL53L5CX
 
 // Create an object for our VL53L5CX sensor
-Irsensor::Irsensor(int SDA_PIN, int SCL_PIN, int LPN_PIN)
+Irsensor::Irsensor(int m_sda_pin, int m_scl_pin, int m_lpn_pin)
 {
-    m_SDA_PIN = SDA_PIN;
-    m_SCL_PIN = SCL_PIN;
-    m_LPN_PIN = LPN_PIN;
+    m_SDA_PIN = m_sda_pin;
+    m_SCL_PIN = m_scl_pin;
+    m_LPN_PIN = m_lpn_pin;
     dataReady = false;
 }
 
