@@ -59,7 +59,7 @@ void Pami::test(int mode)
         Serial.println("Test Servomoteur : Va-et-vient de 3 secondes (Boucle infinie)");
         while (true)
         {
-            this->blink_servo(0, 90);
+            this->servo->blink(0, 90);
         }
         break;
     }
@@ -661,14 +661,6 @@ void Pami::update_mesure_position()
     this->pos_x = mesure_pos->pos_x;
     this->pos_y = mesure_pos->pos_y;
     this->pos_angle = mesure_pos->pos_angle_deg;
-}
-
-/*
-Fonction pour bouger le servo entre deux angles en un temps donné
-*/
-void Pami::blink_servo(int angle1, int angle2, long time_blink)
-{
-    servo->blink(angle1, angle2, time_blink);
 }
 
 /*

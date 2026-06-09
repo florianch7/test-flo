@@ -61,7 +61,6 @@ Voilà l'architecture globale. Le code est décomposé en plusieurs fichiers **(
 | 🔴 **Irsensor** | Capteur ToF (VL53L5CX) - distance à l'obstacle le plus proche |
 | 🔊 **Ultrason** | Capteur HC-SR04 - distance à l'obstacle le plus proche (pas utilisé) |
 | 📐 **Serv** | Contrôle le servomoteur |
-| 📺 **Screen** | Écran LCD |
 | 🗺️ **Mesure_pos** | Position absolue du PAMI sur le terrain |
 | 🤖 **Pami** | Classe principale - combine les autres composants |
 | 💻 **main** | Programme à adapter - définit la stratégie |
@@ -304,14 +303,8 @@ pami.linear_stop();                                 // Arrêt linéaire bloquant
 pami.non_blocking_linear_stop(init);                // Arrêt linéaire non bloquant
 ```
 
-#### Ecran & servo
+#### Servo
 ```cpp
-screen.print()      // Affiche le texte sur la ligne actuelle
-screen.println()    // Affiche le texte et passe à celle d'après
-screen.nextline()   // Passe à la ligne suivante
-screen.setline()    // Choisit la ligne d'écriture
-screen.clear()      // Vide l'écran
-
 pami.blink_servo(theta1, theta2, temps_ms);     // Bouger le servo entre deux angles tous les temps_ms
 ```
 

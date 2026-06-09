@@ -71,18 +71,11 @@ public:
     void linear_stop();
     void stop();
 
-    void blink_servo(int angle1, int angle2, long time_blink = PERIODE_BLINK);
     double get_IR_distance();
 
     // Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
     void set_initial_position();
     void update_mesure_position();
-
-    // $ Ecran (à faire)
-    void afficher_ecran(String ligne1);
-
-    // $ Potentiomètre (à faire)
-    int get_numero_pami(int pin);
 
     // Fonctions de log
     void print_log();

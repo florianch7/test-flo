@@ -4,7 +4,6 @@
  */
 
 #include <Pami.h>
-#include <Screen.h>
 
 // Initialise les différents objets
 Serv servo = Serv(SERVPIN);
@@ -14,7 +13,6 @@ Moteur moteur_g = Moteur(EN_L, IN1_L, IN2_L, INV_MOT_L);
 Encodeur encodeur_d = Encodeur(CLK_R, DT_R, INV_ENC_R);
 Encodeur encodeur_g = Encodeur(CLK_L, DT_L, INV_ENC_L);
 Mesure_pos mesure_pos = Mesure_pos(&encodeur_g, &encodeur_d);
-Screen screen = Screen(SDA_PIN, SCL_PIN, SCREEN_I2C_ADDR);
 
 int etape_globale = 0;
 
@@ -39,10 +37,6 @@ void setup()
     // Setup servo
     servo.setup();
     Serial.println("Setup Done : Servo");
-
-    // Setup ecran
-    screen.setup();
-    Serial.println("Setup Done : Screen");
 
     // Setup moteur droit & gauche
     moteur_d.setup();
@@ -75,12 +69,8 @@ void setup()
 
     while (digitalRead(PIN_TIRETTE) == 1)
     {
-        if (millis() - last_read > PERIODE_SCREEN)
-        {
-            pami.print_changes_in_interrupteur();
-            screen.print(pami.equipe_color + "n°" + String(pami.num_pami));
-            last_read = millis();
-        }
+        pami.print_changes_in_interrupteur();
+        last_read = millis();
         delay(10);
     }
 
@@ -117,7 +107,7 @@ void loop()
         pami.linear_stop();
         while (true)
         {
-            pami.blink_servo(0, 90);
+            servo.blink(0, 90);
         }
     }
 
@@ -152,9 +142,6 @@ void loop()
     if (millis() - pami.m_time_log >= PERIODE_LOG)
     {
         pami.print_log();
-        screen.setline(0);
-        screen.println(pami.equipe_color + "n°" + String(pami.num_pami));
-        screen.print("Time : " + String((millis() - pami.m_time_match) / 1000));
         pami.m_time_log = millis();
     }
 }

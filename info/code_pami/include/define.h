@@ -62,11 +62,6 @@ SERVO
 #define SERVPIN 18 // Broche du servo moteur sur D15
 
 /*
-Ecran
-*/
-#define SCREEN_I2C_ADDR 0x27 // Adresse I2C de l'écran LCD (à vérifier selon votre écran)
-
-/*
 CONFIG DES PAMI
 */
 // Le coté est défini quand on est face à la scène.
@@ -94,7 +89,6 @@ Paramètres globaux
 #define START_TIME 3000     // Temps de démarrage des pamis (85s).
 #define DELAY_TIME 200      // Temps de delay pour les fonctions non bloquantes
 #define PERIODE_LOG 1000    // Période entre chaque log (ms)
-#define PERIODE_SCREEN 500  // Période de rafraîchissement de l'écran (ms)
 #define PERIODE_BLINK 1000  // Période de clignotement (ms)
 #define PERIODE_ASSERV 50   // Période d'asservissement (ms)
 #define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)

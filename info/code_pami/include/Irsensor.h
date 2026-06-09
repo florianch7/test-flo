@@ -40,6 +40,12 @@ public:
     void setup();
 
     /**
+     * @brief Renvoie la distance minimale détectée par le capteur IR
+     * @return Distance minimale en mm
+     */
+    double return_IR_distance();
+
+    /**
      * @brief Boucle de lecture du capteur IR, met à jour la distance
      */
     void loop();

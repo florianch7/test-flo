@@ -69,6 +69,12 @@ void Irsensor::setup()
     myImager.startRanging();
 }
 
+double Irsensor::return_IR_distance()
+{
+    this->loop();
+    return this->ir_minimum_distance;
+}
+
 void Irsensor::loop()
 {
     if (millis() - m_time >= m_dt) // 10ms delay between readings
