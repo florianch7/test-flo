@@ -53,36 +53,35 @@ public:
     // Modes: 1=Interrupteurs, 2=CapteurIR, 3=Servo, 4=Moteurs&Encodeurs, 5=MouvementComplet, 6=Homologation, 7=GainsAsserv, 8=GainsNaifs
     void test(int mode);
 
-    // Fonctions non bloquantes qui nécessite un numéro pour être appelée dans l'ordre
-    // Sinon elles s'executeraient toutes en même temps
+    // Permet d'asservir le robot a partir d'une liste de mouvements ou un seul
     // $ Faire PID
     void asserv_list(float mouvements[][2], int nb_mvt);
     void asserv(float consigne_distance_mm, float consigne_angle_degre);
-    void avancer_asservi(int etape_d_appel, float consigne_mm);
-    void tourner_asservi(int etape_d_appel, float consigne_angle);
 
-    // Avancer basiquement sans asserv
+    // Permet de faire des lignes droites ou des rotations sur lui même avec asservissement
+    // Le n° d'appel permet de faire une suite d'action non bloquante
+    void ligne_droite(int etape_d_appel, float consigne_mm);
+    void rotation(int etape_d_appel, float consigne_angle);
+
+    // Avancer/tourner basiquement sans asserv
     void avancer(float distance, int speed = SPEED);
     void tourner(float angle_degres, float speed = SPEED);
 
     // Fonctions de contrôle des moteurs
     void set_speed(int speed_d, int speed_g);
-    void non_blocking_linear_stop(bool init = false);
+    void non_blocking_linear_stop(bool init = false); // $ Weird to use - make it easier ? (how)
     void linear_stop();
     void stop();
 
-    void blink_servo(int angle1, int angle2, long time_blink = PERIODE_BLINK);
+    // Renvoie la distance au prochain obstacle en mm du capteur IR
     double get_IR_distance();
 
     // Initialise la position initiale de la PAMI pour définir sa position absolue sur le terrain
     void set_initial_position();
     void update_mesure_position();
 
-    // $ Ecran (à faire)
-    void afficher_ecran(String ligne1);
-
     // $ Potentiomètre (à faire)
-    int get_numero_pami(int pin);
+    int get_numero_pami();
 
     // Fonctions de log
     void print_log();

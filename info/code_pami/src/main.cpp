@@ -117,7 +117,7 @@ void loop()
         pami.linear_stop();
         while (true)
         {
-            pami.blink_servo(0, 90);
+            servo.blink(0, 90);
         }
     }
 

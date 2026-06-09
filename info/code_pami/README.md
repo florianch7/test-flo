@@ -139,9 +139,9 @@ C'est une variable `extern`.
 int etape_globale = 0;  // Variable de suivi d'étape globale (existe déjà dans main.cpp)
 
 // L'étape 2 ne s'éxecute que quand la 1 est terminée etc
-avancer_asservi(0, 150);   // Étape 0 : avancer 150 mm
-tourner_asservi(1, 90);    // Étape 1 : tourner 90°
-avancer_asservi(2, 100);   // Étape 2 : avancer 100 mm
+ligne_droite(0, 150);   // Étape 0 : avancer 150 mm
+rotation(1, 90);    // Étape 1 : tourner 90°
+ligne_droite(2, 100);   // Étape 2 : avancer 100 mm
 ```
 
 **Comment ça marche :**
@@ -190,8 +190,8 @@ En mode liste, la PAMI passe automatiquement à la consigne suivante quand la pr
 │     pami.avancer(150);                                    │
 │                                                           │
 │  2. Asservi linéaire simple (ligne droite) :              │
-│     avancer_asservi(etape, 150);                          │
-│     tourner_asservi(etape, 90);                           │
+│     ligne_droite(etape, 150);                          │
+│     rotation(etape, 90);                           │
 │                                                           │
 │  3. Asservi continu complexe (courbes) :                  │
 │     pami.asserv(150, 0);                  // Une consigne │
@@ -286,8 +286,8 @@ pami.tourner(angle_deg);        // Tourner d'un angle (degrés). > 0 = trigo, < 
 
 #### Mouvements séquentiels (asservi uniquement pendant le mouvement)
 ```cpp
-pami.avancer_asservi(num_etape, distance_mm);   // Avancer d'une distance (cm). Recule si < 0
-pami.tourner_asservi(num_etape, angle_deg);     // Tourner d'un angle (degrés). > 0 = trigo, < 0 = horaire
+pami.ligne_droite(num_etape, distance_mm);   // Avancer d'une distance (cm). Recule si < 0
+pami.rotation(num_etape, angle_deg);     // Tourner d'un angle (degrés). > 0 = trigo, < 0 = horaire
 ```
 
 #### Mouvements continus (asservi permanent avec distance + angle)
@@ -305,6 +305,7 @@ pami.non_blocking_linear_stop(init);                // Arrêt linéaire non bloq
 ```
 
 #### Ecran & servo
+On a un écran à deux lignes
 ```cpp
 screen.print()      // Affiche le texte sur la ligne actuelle
 screen.println()    // Affiche le texte et passe à celle d'après
@@ -312,7 +313,7 @@ screen.nextline()   // Passe à la ligne suivante
 screen.setline()    // Choisit la ligne d'écriture
 screen.clear()      // Vide l'écran
 
-pami.blink_servo(theta1, theta2, temps_ms);     // Bouger le servo entre deux angles tous les temps_ms
+servo.blink(theta1, theta2, temps_ms);     // Bouger le servo entre deux angles tous les temps_ms
 ```
 
 #### Position absolue

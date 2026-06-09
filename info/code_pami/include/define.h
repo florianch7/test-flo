@@ -12,6 +12,12 @@
 extern int etape_globale;
 
 /*
+CONSTANTES
+*/
+#define LARGEUR_ROBOT_MM 150 // Largeur du Start_pos en mm (distance entre les roues)
+#define NOMBRE_PAMIS 4       // Nombre de pamis (pour le potentiomètre)
+
+/*
 MOTEURS
 */
 #define EN_L 32  // M1 EN LEFT MOTEUR
@@ -62,7 +68,7 @@ SERVO
 #define SERVPIN 18 // Broche du servo moteur sur D15
 
 /*
-Ecran
+SCREEN
 */
 #define SCREEN_I2C_ADDR 0x27 // Adresse I2C de l'écran LCD (à vérifier selon votre écran)
 
@@ -84,6 +90,7 @@ CONFIG DES PAMI
 // High & Low : Troisième
 // High & High : Quatrième
 
+#define PIN_POTARD 0      // PIN du potentiomètre pour définir le numéro de la PAMI
 #define PIN_INT_PAMI_1 16 // PIN interrupteur 1 pour le numéro de la PAMI
 #define PIN_INT_PAMI_2 17 // PIN interrupteur 2 pour le numéro de la PAMI
 
@@ -92,18 +99,16 @@ Paramètres globaux
 */
 #define END_TIME 99000      // Temps global de la pami en ms (99s)
 #define START_TIME 3000     // Temps de démarrage des pamis (85s).
-#define DELAY_TIME 200      // Temps de delay pour les fonctions non bloquantes
 #define PERIODE_LOG 1000    // Période entre chaque log (ms)
 #define PERIODE_SCREEN 500  // Période de rafraîchissement de l'écran (ms)
 #define PERIODE_BLINK 1000  // Période de clignotement (ms)
 #define PERIODE_ASSERV 50   // Période d'asservissement (ms)
 #define PERIODE_POSITION 50 // Période de mise à jour de la position (ms)
 
-#define LARGEUR_ROBOT_MM 150 // Largeur du Start_pos en mm (distance entre les roues)
-#define SPEED 255            // Vitesse (255 est la vitesse max des moteurs pour pwm)
-#define DISTANCE_MIN 80      // Distance minimale pour éviter un obstacle en mm
-#define ERREUR_DISTANCE 1    // Incertitude position (mm)
-#define ERREUR_ANGLE 3       // Incertitude position (degrés)
+#define SPEED 255         // Vitesse (255 est la vitesse max des moteurs pour pwm)
+#define DISTANCE_MIN 80   // Distance minimale pour éviter un obstacle en mm
+#define ERREUR_DISTANCE 1 // Incertitude position (mm)
+#define ERREUR_ANGLE 3    // Incertitude position (degrés)
 
 /*
 Gains naifs pour réellement avancer de 10cm avec un delay
@@ -128,9 +133,16 @@ Paramètres de l'asservissement
 
 /*
 Positions en fonction des équipe (J = JAUNE (gauche), B = BLUE (droite)) & du n° de la pami (1, 2, 3, 4)
-Chaque pami à ses propres positions de départ et d'arrivée en cm
+Chaque pami à ses propres positions de départ en cm
+
+Tableau de config
+4 Pami
+2 équipes (J - JAUNE, B - BLUE)
+Pour chaque équipe, la position de départ (x, y)
+{.j = {x_depart, y_depart}, b = {x_depart, y_depart}}
+On accède avec : pami[i].j.x    pami[i].b.y
 */
-// Structure pour stocker les positions et mouvements
+
 struct Point
 {
     float x;
@@ -142,15 +154,6 @@ struct StartPosition
     Point j;
     Point b;
 };
-
-/*
-Tableau de config
-4 Pami
-2 équipes (J - JAUNE, B - BLUE)
-Pour chaque équipe, la position de départ (x, y)
-{.j = {x_depart, y_depart}, b = {x_depart, y_depart}}
-On accède avec : pami[i].j.x    pami[i].b.y
-*/
 
 inline const StartPosition pami_start_pos[4] = {
     {.j = {10, 80}, .b = {10, 80}},

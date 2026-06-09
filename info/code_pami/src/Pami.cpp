@@ -59,7 +59,7 @@ void Pami::test(int mode)
         Serial.println("Test Servomoteur : Va-et-vient de 3 secondes (Boucle infinie)");
         while (true)
         {
-            this->blink_servo(0, 90);
+            this->servo->blink(0, 90);
         }
         break;
     }
@@ -245,7 +245,7 @@ void Pami::test(int mode)
 Permet d'éxecuter plusieurs consignes de manière séquentielle non bloquant
 Asservissement en consigne de distance et d'angle en même temps, pour faire du mouvement curviligne
 Si pas précisé dans le nom, c'est en ticks, sinon on met _cm ou _mm ou _degre
-$ C'est pas mieux de tout gérer en mm ? Non car ça permet de faire du asservissement en ticks -> Sinon les angles c'est bizarre à gérer en mm
+C'est pas mieux de tout gérer en mm ? Non car ça permet de faire du asservissement en ticks -> Sinon les angles c'est bizarre à gérer en mm
 $ Vérifier le KD et l'asservissement dérivateur
 */
 void Pami::asserv_list(float mouvements[][2], int nb_mvt)
@@ -366,7 +366,7 @@ void Pami::asserv(float consigne_distance_mm, float consigne_angle_degre)
 Avancer en ligne droite, on veut que chaque moteur avance de consigne_angle mm
 Recule si consigne_mm < 0
 */
-void Pami::avancer_asservi(int etape_d_appel, float consigne_mm)
+void Pami::ligne_droite(int etape_d_appel, float consigne_mm)
 {
     // Si c'est l'étape à laquelle on veut l'appeler & que l'intervalle d'asservissement est écoulé, alors on asservit
     if (etape_d_appel == etape_globale && (millis() - this->m_time_asserv) >= PERIODE_ASSERV)
@@ -419,7 +419,7 @@ Tourne sur lui même, on veut que chaque moteur avance de consigne_angle dans de
 consigne angle > 0 = sens trigo
 consigne angle < 0 = sens horaire
 */
-void Pami::tourner_asservi(int etape_d_appel, float consigne_angle)
+void Pami::rotation(int etape_d_appel, float consigne_angle)
 {
     /* But du gain proportionnel : faire une correction proportionnelle à l'erreur.
     On prend la somme pour que chaque moteur fasse le même nombre de ticks dans des sens opposés et donc une erreur nulle
@@ -664,11 +664,12 @@ void Pami::update_mesure_position()
 }
 
 /*
-Fonction pour bouger le servo entre deux angles en un temps donné
+Retourne le numéro de la PAMI en fonction du potentiomètre
 */
-void Pami::blink_servo(int angle1, int angle2, long time_blink)
+int Pami::get_numero_pami()
 {
-    servo->blink(angle1, angle2, time_blink);
+    // Renvoie un nombre entre 0 et NOMBRE_PAMIS en fonction de la position du potentiomètre
+    return map(analogRead(PIN_POTARD), 0, 4095, 0, NOMBRE_PAMIS);
 }
 
 /*
@@ -684,8 +685,7 @@ double Pami::get_IR_distance()
     }
     else
     {
-        ir_sensor->loop();
-        return ir_sensor->ir_minimum_distance;
+        return ir_sensor->return_IR_distance();
     }
 }
 
