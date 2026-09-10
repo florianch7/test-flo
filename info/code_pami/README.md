@@ -3,13 +3,13 @@
 ## 📑 Sommaire
 - [État du projet](#état-du-projet)
 - 🚀 [Pour commencer](#-pour-commencer)
+- ⚙️ [Configuration](#️-paramètres-existants-dans-defineh) avec `define.h`
 - ⚖️ [Architecture & concepts clés](#-architecture-du-code)
-    - ⏱️ [Fonctions non bloquantes](#️-code-non-bloquant-séquentiel)
+    - ⏱️ [Fonctions non bloquantes](#️-code-non-bloquant)
     - 🧩[Déplacements](#-déplacements--trois-types-de-fonctions)
     - ⚙️ [Asservissement](#️-asservissement-pd)
 - 📍 [Mesure de position](#-mesure-de-position)
 - 📚 [Listes des fonctions utiles](#-référence-des-fonctions)
-- ⚙️ [Configuration](#️-paramètres-existants-dans-defineh) avec `define.h`
 
 ## État du projet
 
