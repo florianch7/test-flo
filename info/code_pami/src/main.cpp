@@ -16,6 +16,7 @@ Encodeur encodeur_g = Encodeur(CLK_L, DT_L, INV_ENC_L);
 Mesure_pos mesure_pos = Mesure_pos(&encodeur_g, &encodeur_d);
 Screen screen = Screen(SDA_PIN, SCL_PIN, SCREEN_I2C_ADDR);
 
+// Variable pour l'asservissement en ligne droite ou rotation sur lui même
 int etape_globale = 0;
 
 // La pami en elle même

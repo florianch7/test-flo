@@ -11,8 +11,6 @@
 - 📚 [Listes des fonctions utiles](#-référence-des-fonctions)
 - ⚙️ [Configuration](#️-paramètres-existants-dans-defineh) avec `define.h`
 
----
-
 ## État du projet
 
 ### ✅ Fonctionnalités implémentées
@@ -27,8 +25,6 @@
 
 ### 📋 À faire
 - 📍 Vérifier la calibration de (x, y, θ) avec une règle
-
----
 
 ## 🚀 Pour commencer
 
@@ -48,7 +44,47 @@ Ils doivent avoir un **système d'évitement d'obstacle** (on utilise de l'infra
 
 > 💡 **Fichier à modifier** : Uniquement `main.cpp` pour écrire la stratégie & `define.h` pour la config. Les classes `Pami`, `Moteur`, etc. contiennent le code bas niveau.
 
----
+## ⚙️ Paramètres existants dans `define.h`
+
+### 📌 Tous les pins, les GPIO
+
+### 📏 Tous les paramètres globaux
+- **Periodes** : Les temps de tout (début & fin du match, fréquence d'asservissement, du servomoteur, de l'infrarouge, des logs, etc)
+- **Géométrie** : L'empatement du robot, la vitesse moteur par défaut (0-255 pour PWM)
+- **Tolérances** : Toutes les tolérances [déplacement en distance (mm) et angle (°), distance de détection d'obstacle (mm)]
+
+### 🚀 Gains pour mouvements naïfs (bloquants)
+- **K_NAIF** : Gain proportionnel sur le temps pour avancer (test 8)
+- **K_ANGLE_NAIF** : Gain proportionnel sur le temps pour tourner (test 9)
+
+### 🎮 Gains PD pour asservissement
+- **KP_DISTANCE / KD_DISTANCE** : Correction proportionnelle/dérivative pour avancer tout droit
+- **KP_ANGLE / KD_ANGLE** : Correction proportionnelle/dérivative pour tourner sur place
+
+### 📏 Gains de conversion encodeur
+- **GAIN_MM_TO_TICKS** : Nombre de ticks par mm parcouru → calibré avec test 6
+- **GAIN_ANGLE_TO_TICKS** : Nombre de ticks par degré tournés → calibré avec test 7
+
+### 📍 Positions de départ
+Les positions initiales pour chaque PAMI pour avoir la position absolue de la PAMI sur la scène :
+- Un tableau avec 4 entrées - une pour chaque pami (on peut en rajouter si plus de pami)
+- Pour chaque pami une équipe (Jaune ou Bleue)
+- Pour chaque équipe une position (x, y) de départ donc on a :
+```cpp
+{.j = {x_depart_j, y_depart_j}, .b = {x_depart_b, y_depart_b}}`
+```
+- Pour y accèder (voir exemple) : .j ou .b pour l'équipe puis .x ou .y pour la coordonnée
+
+```cpp
+inline const Robot pami_start_pos[4] = {
+    {.j = {0, 0}, .b = {0, 0}},
+    {.j = {0, 0}, .b = {0, 0}},
+    {.j = {0, 0}, .b = {0, 0}},
+    {.j = {0, 0}, .b = {0, 0}};
+
+int pos_start_jaune_x = pami_start_pos[2].j.start.x
+int pos_start_bleue_y = pami_start_pos[2].b.start.y
+```
 
 ## 📘 Architecture du code
 
@@ -66,7 +102,6 @@ Voilà l'architecture globale. Le code est décomposé en plusieurs fichiers **(
 | 🤖 **Pami** | Classe principale - combine les autres composants |
 | 💻 **main** | Programme à adapter - définit la stratégie |
 
----
 
 - ### ⏱️ Code non bloquant
 
@@ -104,30 +139,46 @@ if ((millis() - pami.m_time_match) > START_TIME) {
 Chaque appel à `loop()` teste les conditions et met à jour l'état : pas d'attente, pas de blocage.
 C'est très subtile car les fonctions dans un if sont toutes constamment appelées. Ils faut être sur qu'elles s'éxecutent dans l'ordre et ne se mélange pas. Donc ne modifiez pas sans être 100% sur de vous !
 
----
-
 - ### 🧩 Déplacements : Trois types de fonctions
 
-#### 1️⃣ Fonctions **naïves** (pas d'asservissement)
+#### 1️⃣ Fonctions **naïves** (pas d'asservissement & bloquantes)
+
+```cpp
+    pami.avancer(distance)
+    pami.tourner(angle)
+```
+
 Vous spécifiez la distance/angle → la PAMI bouge sans correction pendant le temps estimé.
 
 ⚠️ **Attention :** Ces fonctions sont **bloquantes** et utilisent `delay()`. À utiliser uniquement pour du test. Le temps de mouvement est calculé par :
-- `temps = K_NAIF * (distance / SPEED) * 1000 ms`
+- `temps = K_NAIF * (distance / SPEED) * 1000`
+- `temps_angulaire = K_ANGLE_NAIF * (abs(angle_degres) / 360.0) * 1000`
 
-**Exemples :**
-```cpp
-pami.avancer(150);      // Avancer 150 cm - bloquant !
-pami.tourner(90);       // Tourner 90° sens trigonométrique - bloquant !
-```
+
+K_NAIF/K_ANGLE_NAIF sont des gains à régler pour chaque structure de pami. Ils ajustent le temps de sorte que la distance/l'angle soient respectés. Il faut les calibrer au début, on met 10 cm en distance et on regarde de combien la pami avance. Juste un gain proportionnel. Idem pour l'angle
+
 
 #### 2️⃣ Fonctions **séquentielles** avec numéro d'appel
-Asservissement **P uniquement** et  **actif uniquement pendant le mouvement**, arrêt automatique quand l'objectif est atteint.
+
+```cpp
+    pami.ligne_droite(numero_appel, distance)
+    pami.rotation(numero_appel, angle)
+```
+
+Asservissement **P uniquement** et  **actif uniquement pendant le mouvement**, arrêt automatique quand l'objectif est atteint -> un choc peut arriver en match et le robot sera donc perdu avec ces méthodes.
 Nécessite de passer un numéro d'étape qui sera comparé à `etape_globale` (définit dans `main.cpp` & `define.h`).
-C'est une variable `extern`.
+C'est une variable `extern` qui existe donc dans tout les fichiers.
+
+**Comment ça marche :**
+1. La fonction teste `if (etape_globale == mon_numero)`
+2. Si oui, elle **asservit en continu** jusqu'à atteindre la consigne
+3. Une fois finie, elle incrémente `etape_globale` pour passer à la suivante
+4. Les encodeurs sont **réinitialisés** à zéro après chaque étape
+
 
 **Correction P appliquée :**
-- **Avancer** : corrige l'écart latéral entre les roues (différence des ticks)
-- **Tourner** : corrige la position du centre de rotation (somme des ticks)
+- **Avancer** : corrige l'écart entre les roues (différence des ticks)
+- **Tourner** : corrige l'écart avec la position du centre de rotation (somme des ticks)
 
 **Utilisation :**
 - Avancer tout droit et tourner sur place
@@ -144,14 +195,13 @@ rotation(1, 90);    // Étape 1 : tourner 90°
 ligne_droite(2, 100);   // Étape 2 : avancer 100 mm
 ```
 
-**Comment ça marche :**
-1. La fonction teste `if (etape_globale == mon_numero)`
-2. Si oui, elle **asservit en continu** jusqu'à atteindre la consigne
-3. Une fois finie, elle incrémente `etape_globale` pour passer à la suivante
-4. Les encodeurs sont **réinitialisés** à zéro après chaque étape
-
-
 #### 3️⃣ Fonctions **continues** avec asservissement PD permanent
+
+```cpp
+    pami.asserv(distance, angle)
+    pami.asserv_list(liste_mouvements, nb_mouvements)
+```
+
 Vous donnez une consigne (distance + angle) → la PAMI la maintient indéfiniment.
 
 **Utilisation :**
@@ -190,8 +240,8 @@ En mode liste, la PAMI passe automatiquement à la consigne suivante quand la pr
 │     pami.avancer(150);                                    │
 │                                                           │
 │  2. Asservi linéaire simple (ligne droite) :              │
-│     ligne_droite(etape, 150);                          │
-│     rotation(etape, 90);                           │
+│     pami.ligne_droite(etape, 150);                        │
+│     pami.rotation(etape, 90);                             │
 │                                                           │
 │  3. Asservi continu complexe (courbes) :                  │
 │     pami.asserv(150, 0);                  // Une consigne │
@@ -199,9 +249,7 @@ En mode liste, la PAMI passe automatiquement à la consigne suivante quand la pr
 │                                                           │
 └───────────────────────────────────────────────────────────┘
 ```
-
----
-
+56
 - ### ⚙️ Asservissement PD
 
 L'asservissement des fonctions `asserv` & `asserv_list` utilise une correction **proportionnelle-dérivée (PD)** pour corriger les erreurs :
@@ -222,7 +270,6 @@ commande_moteur = correction_distance ± correction_angle
 - **KP** (gain proportionnel) : Plus l'erreur est grande, plus on corrige fort
 - **KD** (gain dérivateur) : Évite les dépassements en freinant si l'erreur diminue trop vite
 
----
 
 **🔍 Régler l'asservissement**
 
@@ -239,7 +286,6 @@ commande_moteur = correction_distance ± correction_angle
 - **N'atteint jamais la cible** → Augmenter **KP**
 - **Reste bloquée** → Vérifier les encodeurs avec test 4
 
----
 
 ## 📍 Mesure de position
 
@@ -247,7 +293,6 @@ Le robot possède deux encodeurs afin de connaitre sa position
 
 - A finir
 
----
 
 ## 🔧 Modes de test diagnostique
 
@@ -265,7 +310,6 @@ La fonction `pami.test(mode)` permet de tester chaque système individuellement.
 | 8 | Calibrer K_NAIF | Ajuster le temps de mouvement naïf (distance) |
 | 9 | Calibrer K_ANGLE_NAIF | Ajuster le temps de rotation naïve |
 
----
 
 ## 📚 Référence des fonctions
 
@@ -324,51 +368,6 @@ pami.update_mesure_position();          // Met à jour la position basée sur le
 float x = pami.pos_x;            // Position x en mm
 float y = pami.pos_y;            // Position y en mm
 float angle = pami.pos_angle;    // Angle en degrés
-```
-
-
----
-
-## ⚙️ Paramètres existants dans `define.h`
-
-### 📌 Tous les pins, les GPIO
-
-### 📏 Tous les paramètres globaux
-- **Periodes** : Les temps de tout (début & fin du match, fréquence d'asservissement, du servomoteur, de l'infrarouge, des logs, etc)
-- **Géométrie** : L'empatement du robot, la vitesse moteur par défaut (0-255 pour PWM)
-- **Tolérances** : Toutes les tolérances [déplacement en distance (mm) et angle (°), détection d'obstacle]
-
-### 🚀 Gains pour mouvements naïfs (bloquants)
-- **K_NAIF** : Facteur de temps pour avancer (test 8)
-- **K_ANGLE_NAIF** : Facteur de temps pour tourner (test 9)
-
-### 🎮 Gains PD pour asservissement
-- **KP_DISTANCE / KD_DISTANCE** : Correction proportionnelle/dérivative pour avancer tout droit
-- **KP_ANGLE / KD_ANGLE** : Correction proportionnelle/dérivative pour tourner sur place
-
-### 📏 Gains de conversion encodeur
-- **GAIN_MM_TO_TICKS** : Nombre de ticks par mm parcouru → calibré avec test 6
-- **GAIN_ANGLE_TO_TICKS** : Nombre de ticks par degré tournés → calibré avec test 7
-
-### 📍 Positions de départ
-Les positions initiales pour chaque PAMI pour avoir la position absolue de la PAMI sur la scène :
-- Un tableau avec 4 entrées - une pour chaque pami (on peut en rajouter si plus de pami)
-- Pour chaque pami une équipe (Jaune ou Bleue)
-- Pour chaque équipe une position (x, y) de départ donc on a :
-```cpp
-{.j = {x_depart_j, y_depart_j}, .b = {x_depart_b, y_depart_b}}`
-```
-- Pour y accèder (voir exemple) : .j ou .b pour l'équipe puis .x ou .y pour la coordonnée
-
-```cpp
-inline const Robot pami_start_pos[4] = {
-    {.j = {0, 0}, .b = {0, 0}},
-    {.j = {0, 0}, .b = {0, 0}},
-    {.j = {0, 0}, .b = {0, 0}},
-    {.j = {0, 0}, .b = {0, 0}};
-
-int pos_start_jaune_x = pami_start_pos[2].j.start.x
-int pos_start_bleue_y = pami_start_pos[2].b.start.y
 ```
 
 ---
