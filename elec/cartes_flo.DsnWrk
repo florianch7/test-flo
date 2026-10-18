@@ -2,13 +2,10 @@
 Version=1.0
 
 [Project1]
-ProjectPath=carte_pami\carte_pami26.PrjPcb
+ProjectPath=carte_pami27\carte_pami27.PrjPcb
 
 [Project2]
-ProjectPath=carte_action_smt32\carte_action_stm32.PrjPcb
+ProjectPath=GR_carte_alim27\GR_carte_alim27.PrjPcb
 
 [Project3]
-ProjectPath=carte_propu_stm32\carte_propu_stm32.PrjPcb
-
-[Project4]
-ProjectPath=carte_raspy_stm32\carte_raspy_stm32.PrjPcb
+ProjectPath=GR_carte_PiHat27\GR_carte_PiHat27.PrjPcb
