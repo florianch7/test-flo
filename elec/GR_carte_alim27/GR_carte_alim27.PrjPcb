@@ -83,23 +83,6 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=EFXDKAVM
 
-[Document3]
-DocumentPath=GR_Alim2026.PcbDoc
-AnnotationEnabled=1
-AnnotateStartValue=1
-AnnotationIndexControlEnabled=0
-AnnotateSuffix=
-AnnotateScope=All
-AnnotateOrder=-1
-DoLibraryUpdate=1
-DoDatabaseUpdate=1
-ClassGenCCAutoEnabled=1
-ClassGenCCAutoRoomEnabled=0
-ClassGenNCAutoScope=None
-DItemRevisionGUID=
-GenerateClassCluster=0
-DocumentUniqueId=ECAITAAE
-
 [GeneratedDocument1]
 DocumentPath=Project Outputs for GR_carte_alim27\Design Rule Check - GR_carte_alim27.html
 DItemRevisionGUID=
