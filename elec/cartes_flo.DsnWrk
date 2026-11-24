@@ -12,12 +12,3 @@ ProjectPath=..\..\isae-bot-elec\Elec2026-27\GR_carte_alim27\GR_carte_alim27.PrjP
 
 [Project4]
 ProjectPath=..\..\isae-bot-elec\Elec2026-27\GR_carte_PiHat27\GR_carte_PiHat27.PrjPcb
-
-[Project5]
-ProjectPath=..\..\isae-bot-elec\old_repos\Elec2025-26\carte_action\carte_Action2026.PrjPcb
-
-[Project6]
-ProjectPath=..\..\isae-bot-elec\old_repos\Elec2024-25\carte_action\carte_action.PrjPcb
-
-[Project7]
-ProjectPath=..\..\isae-bot-elec\old_repos\Elec2022-23\R1_Propu\R1_Propu.PrjPCB

@@ -100,6 +100,27 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=VRWFQVST
 
+[Document4]
+DocumentPath=GR_carte_action27v2.PcbDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=LBMZWGBC
+
+[GeneratedDocument1]
+DocumentPath=Project Outputs for GR_carte_action27\Design Rule Check - GR_carte_action27v2.html
+DItemRevisionGUID=
+
 [Configuration1]
 Name=Sources
 ParameterCount=0
